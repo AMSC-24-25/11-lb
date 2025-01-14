@@ -6,16 +6,17 @@
 #include <omp.h>
 
 #include "LBM.hpp"
+#include "WindTunnelLBM.hpp"
 
-const int maxSteps = 10000; // number of time steps
-const double Re = 1000;
+const int maxSteps = 3000; // number of time steps
+const double Re = 10000;
 const double u_lid = 0.5;
 
 const int ITERATIONS_PER_FRAME = 20;
 const int ITERATIONS_PER_PROGRESS_UPDATE = 10;
 
-const int NX = 250; // Dimension in the x-direction
-const int NY = 250; // Dimension in the y-direction
+const int NX = 500; // Dimension in the x-direction
+const int NY = 200; // Dimension in the y-direction
 
 int main() {
     // Create the output file for velocity
@@ -28,15 +29,17 @@ int main() {
 
     //omp_set_num_threads(10);
 
-    LBM lbm(NX, NY, u_lid, Re);
+    WindTunnelLBM lbm(NX, NY, u_lid, 0.0, Re);
+
+    lbm.create_airfoil_mask();
 
     auto startTime = std::chrono::high_resolution_clock::now();
 
     for (int n = 1; n <= maxSteps; n++) {
-        lbm.evolution(); // System evolution
+        lbm.WindTunnelLBM::evolution(); // System evolution
 
         //Every ITERATIONS_PER_FRAME steps, save velocity data
-        if (n % ITERATIONS_PER_FRAME == 0) {
+        if (n==1 || n % ITERATIONS_PER_FRAME == 0) {
             for (int j = 0; j < lbm.NY; ++j) {
                 for (int i = 0; i < lbm.NX; ++i) {
                     double vx = lbm.get_vel(i,j,0); 

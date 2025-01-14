@@ -1,6 +1,8 @@
 #ifndef LBM_HPP
 #define LBM_HPP
-
+#include <cstdlib>
+#include <cmath>
+#include <vector>
 
 /**
  * @class LBM
@@ -10,7 +12,7 @@
  * for fluid dynamics simulations based on the lattice Boltzmann approach.
  */
 class LBM {
-private:
+protected:
     static constexpr int D = 2; ///< Number of dimensions (2D).
     static constexpr int Q = 9; ///< Number of discrete velocities (D2Q9).
     
@@ -153,7 +155,7 @@ private:
     /**
      * @brief Applies boundary conditions.
      */
-    void apply_boundary_conditions();
+    void virtual apply_boundary_conditions();
 
 public : 
     const int NX; ///< Domain size in the x-direction.
@@ -173,13 +175,13 @@ public :
     /**
      * @brief Evolves the system for a single iteration.
      */
-    void evolution();
+    virtual void evolution();
 
     /**
      * @brief Evolves the system for a specified number of iterations.
      * @param iterations Number of iterations.
      */
-    void evolution(unsigned int iterations);
+    virtual void evolution(unsigned int iterations);
 
     /**
      * @brief Returns the velocity at a specific location.

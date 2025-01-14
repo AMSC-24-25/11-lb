@@ -1,7 +1,5 @@
 #include "LBM.hpp"
 
-#include <cstdlib>
-
 LBM::LBM(unsigned int nx, unsigned int ny, double u_lid, double Re) : NX(nx), NY(ny), u_lid(u_lid), Re(Re) {
     dx = 1.0;         // Spatial step
     dy = 1.0;         // Spatial step
