@@ -24,8 +24,8 @@ LBM::LBM(unsigned int nx, unsigned int ny, double u_lid, double Re) : NX(nx), NY
     for (int i = 0; i < NX; i++) {
         for (int j = 0; j < NY; j++) {
             for(int k = 0; k < D; k++) {
-                velocity(i,j,k) = 0; // Initial velocity
-                velocity_2(i,j,k) = 0;
+                velocity(i,j,k) = 0.0; // Initial velocity
+                velocity_2(i,j,k) = 0.0;
             }
 
             density(i,j) = rho0; // Initial density

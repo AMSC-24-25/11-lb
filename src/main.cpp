@@ -8,30 +8,40 @@
 #include "LBM.hpp"
 #include "WindTunnelLBM.hpp"
 
-const int maxSteps = 3000; // number of time steps
-const double Re = 10000;
+const int maxSteps = 5000; // number of time steps
+const double Re = 1000;
 const double u_lid = 0.5;
 
 const int ITERATIONS_PER_FRAME = 20;
 const int ITERATIONS_PER_PROGRESS_UPDATE = 10;
 
-const int NX = 500; // Dimension in the x-direction
+const int NX = 400; // Dimension in the x-direction
 const int NY = 200; // Dimension in the y-direction
 
 int main() {
     // Create the output file for velocity
-    std::ofstream file("vel_data.txt");
-    if (!file.is_open()) {
+    std::ofstream file_velocity("vel_data.txt");
+    if (!file_velocity.is_open()) {
         std::cerr << "could not opene/create 'vel_data.txt'.\n";
         return 1;
     }
-    file << NX << "\n" << NY << "\n";
+    file_velocity << NX << "\n" << NY << "\n";
+
+    // Create the output file for velocity
+    std::ofstream file_density("rho_data.txt");
+    if (!file_density.is_open()) {
+        std::cerr << "could not opene/create 'rho_data.txt'.\n";
+        return 1;
+    }
+    file_density << NX << "\n" << NY << "\n";
 
     //omp_set_num_threads(10);
 
-    WindTunnelLBM lbm(NX, NY, u_lid, 0.0, Re);
+    WindTunnelLBM lbm(NX, NY, 0.3, 0.0, Re);
 
-    lbm.create_airfoil_mask();
+    // lbm.create_airfoil_mask( 70 );
+    // lbm.create_circular_mask( 25, 150, 50);          // TO DO 
+    lbm.create_rectangular_mask( 20, 20, 50, 90);
 
     auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -45,10 +55,10 @@ int main() {
                     double vx = lbm.get_vel(i,j,0); 
                     double vy = lbm.get_vel(i,j,1);
                     double v = sqrt(vx*vx + vy*vy); 
-                    file << v << "\n";
+                    file_velocity << v << "\n";
+                    file_density << lbm.get_rho(i,j) << "\n";
                 }
             }
-            
         }
         
         // Update the progress bar
@@ -69,7 +79,8 @@ int main() {
         }
     }
 
-    file.close();
+    file_velocity.close();
+    file_density.close();
 
     std::cout << "\n";
 

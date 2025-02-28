@@ -24,6 +24,7 @@ protected:
      * The order for the elements in this (and the next) array is not random.
      * The elements are ordered so that, when executing an iteration, the amound of
      * cache-miss is reduced. Ordering these arrays lead to a observable speedup.
+     * 
      */
     static constexpr int e[Q * D] = {1,1,  1,0,  1,-1,  0,1,  0,0,  0,-1,  -1,1,  -1,0,  -1,-1};
 
@@ -150,7 +151,7 @@ protected:
     /**
      * @brief Performs collisions and updates velocities and densities.
      */
-    void compute();  
+    void virtual compute();  
 
     /**
      * @brief Applies boundary conditions.
@@ -192,6 +193,16 @@ public :
      */
     inline const double& get_vel(unsigned int x, unsigned int y, unsigned int d) const {
         return u[((NY)*x+y)*D + d];
+    }
+
+    /**
+     * @brief Returns the density at a specific location.
+     * @param x x-position.
+     * @param y y-position.
+     * @return Density value.
+     */
+    inline const double& get_rho(unsigned int x, unsigned int y) const {
+        return rho[((NY)*x+y)];
     }
 
 }; 

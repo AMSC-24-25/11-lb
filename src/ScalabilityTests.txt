@@ -1,0 +1,105 @@
+# SCALABILITY TESTS RESULTS 
+
+NX=NY=200, all simd, Re 10000, 1000 steps: 155s ------------------------------------------------------------------------
+        Each sample counts as 0.01 seconds.
+        %   cumulative   self              self     total           
+        time   seconds   seconds    calls  ms/call  ms/call  name    
+        30.03     13.86    13.86     1000    13.86    44.39  LBM::compute()
+        27.03     26.33    12.47 366661158     0.00     0.00  LBM::feq(unsigned int, unsigned int, unsigned int)
+        14.29     32.92     6.59 2199922448     0.00     0.00  LBM::velocity(unsigned int, unsigned int, unsigned int)
+        6.52     35.93     3.01 2144797254     0.00     0.00  LBM::direction(unsigned int, unsigned int)
+        6.12     38.75     2.82 1411344000     0.00     0.00  LBM::field_2(unsigned int, unsigned int, unsigned int)
+        5.06     41.09     2.34 719035939     0.00     0.00  LBM::field(unsigned int, unsigned int, unsigned int)
+
+NX=NY=200, no parallelization, Re 10000, 1000 steps: 103s --------------------------------------------------------------
+        Each sample counts as 0.01 seconds.
+        %   cumulative   self              self     total           
+        time   seconds   seconds    calls  ms/call  ms/call  name    
+        36.09     11.25    11.25     1000    11.25    30.21  LBM::compute()
+        27.87     19.93     8.68 367524000     0.00     0.00  LBM::feq(unsigned int, unsigned int, unsigned int)
+        10.29     23.14     3.21 2206856000     0.00     0.00  LBM::velocity(unsigned int, unsigned int, unsigned int)
+        6.81     25.26     2.12 1411344000     0.00     0.00  LBM::field_2(unsigned int, unsigned int, unsigned int)
+        5.89     27.10     1.84 2146392000     0.00     0.00  LBM::direction(unsigned int, unsigned int)
+        4.24     28.42     1.32 720360000     0.00     0.00  LBM::field(unsigned int, unsigned int, unsigned int)
+
+NX=NY=200, compute has parallel for collapse (2), Re 10000, 1000 steps: 167s -------------------------------------------
+        Each sample counts as 0.01 seconds.
+        %   cumulative   self              self     total           
+        time   seconds   seconds    calls  ms/call  ms/call  name    
+        24.65      7.89     7.89     1000     7.89    31.72  LBM::apply_boundary_conditions()
+        17.74     13.58     5.68 52629773     0.00     0.00  LBM::feq(unsigned int, unsigned int, unsigned int)
+        15.56     18.56     4.98 307889417     0.00     0.00  LBM::velocity(unsigned int, unsigned int, unsigned int)
+        11.75     22.32     3.76 249935240     0.00     0.00  LBM::direction(unsigned int, unsigned int)
+        10.96     25.83     3.51 149147430     0.00     0.00  LBM::field_2(unsigned int, unsigned int, unsigned int)
+        6.39     27.88     2.05 96150893     0.00     0.00  LBM::velocity_2(unsigned int, unsigned int, unsigned)
+
+NX=NY=200, compute has simd, Re 10000, 1000 steps: 107s ----------------------------------------------------------------
+        Each sample counts as 0.01 seconds.
+        %   cumulative   self              self     total           
+        time   seconds   seconds    calls  ms/call  ms/call  name    
+        33.94     10.92    10.92     1000    10.92    31.14  LBM::compute()
+        29.28     20.33     9.42 367524000     0.00     0.00  LBM::feq(unsigned int, unsigned int, unsigned int)
+        10.25     23.63     3.30 2206856000     0.00     0.00  LBM::velocity(unsigned int, unsigned int, unsigned int)
+        6.60     25.75     2.12 1411344000     0.00     0.00  LBM::field_2(unsigned int, unsigned int, unsigned int)
+        5.96     27.67     1.92 2146392000     0.00     0.00  LBM::direction(unsigned int, unsigned int)
+        4.53     29.12     1.46 720360000     0.00     0.00  LBM::field(unsigned int, unsigned int, unsigned int)
+
+# DALLE ANALISI (14) E (36) SI NOTA COME IL TEMPO IN PARALLELO SIA SIMILE, MA QUELLO IMPIEGATO DA COMPUTE SIA DIMINUITO.
+# CONVIENE DUNQUE PROVARE AD INDAGARE CON QUESTE IMPOSTAZIONI, AUMENTANDO LA SIZE     
+
+NX=NY=300, compute has simd, Re 10000, 1000 steps: 234s -----------------------------------------------------------------
+        Each sample counts as 0.01 seconds.
+        %   cumulative   self              self     total           
+        time   seconds   seconds    calls  ms/call  ms/call  name    
+        35.83     24.90    24.90     1000    24.90    67.76  LBM::compute()
+        28.41     44.66    19.75 821574000     0.00     0.00  LBM::feq(unsigned int, unsigned int, unsigned int)
+        10.56     51.99     7.34 4932106000     0.00     0.00  LBM::velocity(unsigned int, unsigned int, unsigned int)
+        6.39     56.44     4.44 3196944000     0.00     0.00  LBM::field_2(unsigned int, unsigned int, unsigned int)
+        5.77     60.44     4.01 4840092000     0.00     0.00  LBM::direction(unsigned int, unsigned int)
+        4.23     63.39     2.94 1620810000     0.00     0.00  LBM::field(unsigned int, unsigned int, unsigned int)
+
+NX=NY=300, no parallelization, Re 10000, 1000 steps: 252s ---------------------------------------------------------------
+        Each sample counts as 0.01 seconds.
+        %   cumulative   self              self     total           
+        time   seconds   seconds    calls  ms/call  ms/call  name    
+        35.44     26.76    26.76     1000    26.76    73.46  LBM::compute()
+        28.76     48.47    21.71 821574000     0.00     0.00  LBM::feq(unsigned int, unsigned int, unsigned int)
+        10.68     56.53     8.06 4932106000     0.00     0.00  LBM::velocity(unsigned int, unsigned int, unsigned int)
+        6.14     61.17     4.64 4840092000     0.00     0.00  LBM::direction(unsigned int, unsigned int)
+        5.63     65.42     4.25 3196944000     0.00     0.00  LBM::field_2(unsigned int, unsigned int, unsigned int)
+        4.19     68.58     3.16 1620810000     0.00     0.00  LBM::field(unsigned int, unsigned int, unsigned int)
+
+# !! INDAGHIAMO LO SPEEDUP OTTENUTO
+
+NX=NY=400, compute has simd collapse(2), Re 10000, 1000 steps: 607s -----------------------------------------------------
+        Each sample counts as 0.01 seconds.
+        %   cumulative   self              self     total           
+        time   seconds   seconds    calls  ms/call  ms/call  name    
+        32.45     62.64    62.64     1000    62.64   188.42  LBM::compute()
+        25.76    112.35    49.72 1455804000     0.00     0.00  LBM::feq(unsigned int, unsigned int, unsigned int)
+        11.12    133.83    21.47 8738496000     0.00     0.00  LBM::velocity(unsigned int, unsigned int, unsigned int)
+        7.72    148.73    14.91 5702544000     0.00     0.00  LBM::field_2(unsigned int, unsigned int, unsigned int)
+        6.13    160.57    11.84 8614152000     0.00     0.00  LBM::direction(unsigned int, unsigned int)
+        5.13    170.47     9.90 3485368000     0.00     0.00  LBM::velocity_2(unsigned int, unsigned int, unsigned)
+
+NX=NY=400, no parallelization, Re 10000, 1000 steps: 600s ---------------------------------------------------------------
+        Each sample counts as 0.01 seconds.
+        %   cumulative   self              self     total           
+        time   seconds   seconds    calls  ms/call  ms/call  name    
+        33.50     62.88    62.88     1000    62.88   183.71  LBM::compute()
+        25.61    110.94    48.07 1455804000     0.00     0.00  LBM::feq(unsigned int, unsigned int, unsigned int)
+        11.87    133.23    22.28 8738496000     0.00     0.00  LBM::velocity(unsigned int, unsigned int, unsigned int)
+        7.25    146.83    13.61 5702544000     0.00     0.00  LBM::field_2(unsigned int, unsigned int, unsigned int)
+        6.52    159.07    12.24 8614152000     0.00     0.00  LBM::direction(unsigned int, unsigned int)
+        5.15    168.73     9.66 2881440000     0.00     0.00  LBM::field(unsigned int, unsigned int, unsigned int)
+
+NX=NY=400, compute has simd, Re 10000, 1000 steps: 605s -----------------------------------------------------
+        Each sample counts as 0.01 seconds.
+        %   cumulative   self              self     total           
+        time   seconds   seconds    calls  ms/call  ms/call  name    
+        32.26     60.85    60.85     1000    60.85   184.93  LBM::compute()
+        26.20    110.29    49.44 1455804000     0.00     0.00  LBM::feq(unsigned int, unsigned int, unsigned int)
+        12.82    134.48    24.18 8738496000     0.00     0.00  LBM::velocity(unsigned int, unsigned int, unsigned int)
+        7.25    148.15    13.68 5702544000     0.00     0.00  LBM::field_2(unsigned int, unsigned int, unsigned int)
+        6.76    160.90    12.75 8614152000     0.00     0.00  LBM::direction(unsigned int, unsigned int)
+        4.78    169.92     9.02 2881440000     0.00     0.00  LBM::field(unsigned int, unsigned int, unsigned int)
