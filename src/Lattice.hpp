@@ -2,7 +2,7 @@
 #define LATTICE_HPP
 
 #include "Node.hpp"
-#include "Auxiliary.hpp"
+#include "Auxiliary.cpp"
 #include <cmath>
 
 class Lattice

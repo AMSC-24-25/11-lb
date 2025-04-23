@@ -1,6 +1,6 @@
 #include "Node.hpp"
 #include "Lattice.hpp"
-#include "Auxiliary.hpp"
+#include "Auxiliary.cpp"
 
 Node::Node(const std::vector<int>& boundary_, const bool obs_, const std::vector<int>& position_)
             : boundary(boundary_), obstacle(obs_), position(position_)
@@ -291,7 +291,8 @@ void Node::computeDragAndLift(double &Cx, double &Cy, double rhoRef, double LRef
     // Normalize to get dimensionless drag/lift coefficients
     double normFactor = rhoRef * LRef * URef * URef;   // Sarebbe rho*v^2*S solo che in 2D quindi la superficie è una lunghezza 
     double localCx = -2.0 * Fx / normFactor;
-    double localCy = -2.0 * Fy / normFactor;
+    double localCy = -2.0
+     * Fy / normFactor;
 
     Cx += localCx;
     Cy += localCy;

@@ -101,12 +101,12 @@ private:
     bool obstacle = false;         ///< True if this node is a solid obstacle
     std::vector<int> position;     ///< Position in the lattice grid
 
-    const std::vector<double> w = {4.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 36.0, 1.0 / 36.0, 1.0 / 36.0,
+    std::vector<double> w = {4.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 36.0, 1.0 / 36.0, 1.0 / 36.0,
                                     1.0 / 36.0};
                                     ///< Weights
-    const std::vector<std::vector<double>> dir = {{0, 0}, {1, 0}, {0, -1}, {-1, 0}, {0, 1}, {1, -1}, {-1, -1}, {-1, 1}, {1, 1}};
-    const std::vector<std::vector<double>> dir_by_dim = {{0, 1, 0, -1, 0, 1, -1, -1, 1}, {0, 0, -1, 0, 1, -1, -1, 1, 1}};
-    const std::vector<unsigned int> opp = {0, 3, 4, 1, 2, 7, 8, 5, 6};
+    std::vector<std::vector<double>> dir = {{0, 0}, {1, 0}, {0, -1}, {-1, 0}, {0, 1}, {1, -1}, {-1, -1}, {-1, 1}, {1, 1}};
+    std::vector<std::vector<double>> dir_by_dim = {{0, 1, 0, -1, 0, 1, -1, -1, 1}, {0, 0, -1, 0, 1, -1, -1, 1, 1}};
+    std::vector<unsigned int> opp = {0, 3, 4, 1, 2, 7, 8, 5, 6};
 
 };
 

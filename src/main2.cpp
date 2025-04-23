@@ -3,7 +3,7 @@
 int main()
 {
     Lattice lattice;
-    //lattice.simulate();
+    lattice.simulate();
     
     return 0;
 }

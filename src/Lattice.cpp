@@ -4,16 +4,84 @@
 #include <chrono>
 #include <iomanip> 
 
+std::vector <int> evaluateBoundary(const std::vector<int>& indices, const Matrix<bool> &obstacleMatrix)
+{
+    const int &col = indices.at(0);
+    const int &row = indices.at(1);
+    const int &NX = obstacleMatrix.shape().at(0);
+    const int &NY = obstacleMatrix.shape().at(1);
+    std::vector<int> boundary_here(4);
+
+    // Evaluate boundary array, considering near objects
+    // Horizontal 
+    if( col>0 && obstacleMatrix.getCopy(col-1,row))
+    {
+        boundary_here.at(0) = -1;
+    }
+    else if(col<(NX-1) && obstacleMatrix.getCopy(col+1,row)) 
+    {
+        boundary_here.at(0) = 1;
+    }
+    else 
+    {
+        boundary_here.at(0) = 0;
+    }
+
+    // Vertical 
+    if (row>0 && obstacleMatrix.getCopy(col,row-1))
+    {
+        boundary_here.at(1) = -1;
+    }
+    else if (row<(NY-1) && obstacleMatrix.getCopy(col,row+1))
+    {
+        boundary_here.at(1) = 1;
+    }
+    else 
+    {
+        boundary_here.at(1) = 0;
+    }
+
+    // First Diag
+    if (col>0 && row>0 && obstacleMatrix.getCopy(col-1,row-1))
+    {
+        boundary_here.at(2) = -1;
+    }
+    else if (col<(NX-1) && row<(NY-1) && obstacleMatrix.getCopy(col+1, row+1))
+    {
+        boundary_here.at(2) = 1;
+    }
+    else 
+    {
+        boundary_here.at(2) = 0;
+    }
+
+    // Second Diag
+    if (col>0 && row<(NY-1) && obstacleMatrix.getCopy(col-1,row+1))
+    {
+        boundary_here.at(3) = 1;
+    }
+    else if (col<(NX-1) && row>0 && obstacleMatrix.getCopy(col+1, row-1))
+    {
+        boundary_here.at(3) = -1;
+    }
+    else 
+    {
+        boundary_here.at(3) = 0;
+    }  
+    return boundary_here;
+}
+
 Lattice::Lattice()
 {
     /*  TO SET MANUALLY  */
     // Hard coding variables
     const unsigned int NX = 100;
     const unsigned int NY = 100;
-    const double Re = 1000;
-    maxSteps = 3000;
+    const double Re = 100;
+    maxSteps = 1000;
     ITERATIONS_PER_FRAME = 20;
     ITERATIONS_PER_PROGRESS_UPDATE = 10;
+    boundary_velocity.resize(2);
     boundary_velocity.at(0) = 0.1; // Vx
     boundary_velocity.at(1) = 0.1; // Vy
 
@@ -31,10 +99,10 @@ Lattice::Lattice()
     obstacles = Matrix<bool> ({NX,NY});
     for (int i=0; i<NX; i++)
         for (int j=0; j<NY; j++)
-        {   obstacles(i,j) = false;
+        {   obstacles.set({i,j}, false);
             if (i<=40 && i>=20 && j<=60 && j>=40)
             {
-                obstacles(i,j) = true;
+                obstacles.set({i,j}, true);
             }
         }
     std::vector<int> boundary;
@@ -44,7 +112,8 @@ Lattice::Lattice()
         {
             isObstacle = obstacles.getCopy(i,j);
             boundary = evaluateBoundary( {i,j} , obstacles);
-            node_matrix.set( {i,j}, Node(boundary, isObstacle, {i,j}) );
+            Node node(boundary, isObstacle, {i,j});
+            node_matrix.set( {i,j}, node );
             node_matrix(i,j).initializeEquilibrium();
             node_matrix(i,j).initializeEquilibrium();
         }    
@@ -92,26 +161,18 @@ void Lattice::simulate()
 
         auto startTime = std::chrono::high_resolution_clock::now();
 
+        std::ofstream file_velocity("vel_data.txt", std::ios::app);
+        std::ofstream file_lift_drag("lift_drag.txt", std::ios::app);
+
         //Every ITERATIONS_PER_FRAME steps, save velocity data
-        if (currentStep=1 || currentStep % ITERATIONS_PER_FRAME == 0) {
+        if (currentStep==1 || currentStep % ITERATIONS_PER_FRAME == 0) {
             for (int j = 0; j < node_matrix.shape().at(1); j++) {
                 for (int i = 0; i < node_matrix.shape().at(0); i++) {
                     double vx = node_matrix(i,j).getVelocity().at(0); 
                     double vy = node_matrix(i,j).getVelocity().at(1); 
                     double v = sqrt(vx*vx + vy*vy);
-
-                    std::ofstream file_velocity("vel_data.txt");
-                    if (!file_velocity.is_open()) {
-                        std::cerr << "could not opene/create 'vel_data.txt'.\n";
-                        return;
-                    } 
+ 
                     file_velocity << v << "\n";
-
-                    std::ofstream file_lift_drag("lift_drag.txt");
-                    if (!file_lift_drag.is_open()) {
-                        std::cerr << "could not opene/create 'lift_drag.txt'.\n";
-                        return;
-                    } 
                     file_lift_drag << Cl << " " << Cd << "\n";
                 }
             }
@@ -125,13 +186,12 @@ void Lattice::simulate()
             
             double estimatedTotalTime = elapsedTime / progress;
             int remainingTime = estimatedTotalTime - elapsedTime;
-
             progress *= 100;
             std::cout << "\rProgress: " << std::fixed << std::setprecision(2) << progress << "% completed "
                       << "| Elapsed Time: " << elapsedTime << "s, "
                       << "Remaining Time (estimated): " << static_cast<int>(remainingTime) << "s"
                       << std::flush;
         }
-        currentStep++;
+        currentStep += 1;
     }
 }
