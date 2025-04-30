@@ -30,8 +30,8 @@ LBM::LBM(unsigned int nx, unsigned int ny, double u_lid, double Re) : NX(nx), NY
 
             density(i,j) = rho0; // Initial density
             density_2(i,j) = rho0;
-			velocity(i, NY, 0) = u_lid;  // Velocity imposed on the upper boundary
-            velocity_2(i, NY, 0) = u_lid;
+			// velocity(i, NY-1, 0) = u_lid;  // Velocity imposed on the upper boundary
+            // velocity_2(i, NY-1, 0) = u_lid;
 
             for (int k = 0; k < Q; k++) {
                 field(i,j,k) = feq(k, i, j); // Initial equilibrium function
@@ -75,8 +75,8 @@ void LBM::evolution(unsigned int iterations) {
 
 void LBM::compute() {
     #pragma omp parallel for collapse(2)
-    for (int i = 1; i < NX-1; i++) {
-        for (int j = 1; j < NY-1; j++) {
+    for (int i = 0; i < NX; i++) {
+        for (int j = 0; j < NY; j++) {
             density_2(i,j) = 0; // Initialize updated density
 
             velocity_2(i,j,0) = 0; // Initialize updated velocity x-component

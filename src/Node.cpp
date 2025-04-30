@@ -16,11 +16,7 @@ void Node::updateMacroscopic()
     if (obstacle == true) {return;}
     else
     {
-        density = 0.0;
-        for (int i = 0; i < f.size(); ++i)
-        {
-            density += f[i];
-        }
+        density = std::accumulate(f.begin(), f.end(), 0.0);
         for (int j=0; j<2; j++)
         {
             velocity.at(j) = 0.0;
@@ -40,12 +36,13 @@ void Node::equilibriumCollision(double omegaP, double halfOmegaSum, double halfO
     {
         // equilibrium
         const double vel_sq = dotProduct(velocity, velocity);
-        const double k1 = 3/2*vel_sq;
-        std::vector<double> f_eq(9,0.0);
-        for (int i=0 ; i<2 ; i++)
+        const double k1 = 1.5*vel_sq;
+        std::vector<double> f_eq;
+        f_eq.resize(9, 0.0);
+        for (int i=0 ; i<9 ; i++)
         {
-            const double k2 = 3*dotProduct(dir.at(i), velocity);
-            f_eq.at(i) = density*w.at(i)*(1+k2+1/2*k2*k2-k1);
+            const double k2 = 3.0*dotProduct(dir.at(i), velocity);
+            f_eq.at(i) = density*w.at(i)*(1+k2+0.5*k2*k2-k1);
         }
         // Collision, index 0 calculated outside the cicle
         newF.at(0) = omegaP*f_eq.at(0)+f.at(0)*(1-omegaP);
@@ -54,6 +51,7 @@ void Node::equilibriumCollision(double omegaP, double halfOmegaSum, double halfO
             newF.at(i) = halfOmegaSum*f_eq.at(i) + halfOmegaSub*f_eq.at(opp.at(i)) 
                             + (1.0-halfOmegaSum)*f.at(i) - halfOmegaSub*f.at(opp.at(i));
         }
+        
     }
 }
 
@@ -61,19 +59,20 @@ void Node::initializeEquilibrium()
 {
     if (obstacle==true)
     {
-        velocity.at(0) = 0.0;
-        velocity.at(1) = 0.0;
+        velocity.at(0) = std::numeric_limits<double>::quiet_NaN();// Better use optional to indicate missing values
+        velocity.at(1) = std::numeric_limits<double>::quiet_NaN();
         return;
     }
     else 
     {
         const double vel_sq = dotProduct(velocity, velocity);
-        const double k1 = 3/2*vel_sq;
-        std::vector<double> f_eq(9,0.0);
-        for (int i=0 ; i<2 ; i++)
+        const double k1 = 1.5*vel_sq;
+        std::vector<double> f_eq;
+        f_eq.resize(9, 0.0);
+        for (int i=0 ; i<9 ; i++)
         {
-            const double k2 = 3*dotProduct(dir.at(i), velocity);
-            f.at(i) = density*w.at(i)*(1+k2+1/2*k2*k2-k1);
+            const double k2 = 3.0*dotProduct(dir.at(i), velocity);
+            f.at(i) = density*w.at(i)*(1+k2+0.5*k2*k2-k1);
         }
     }
 }
@@ -88,12 +87,13 @@ void Node::streaming( Lattice& lattice )
         std::vector<int> newPos(2);
         const unsigned int NX = lattice.node_matrix.shape().at(0);
         const unsigned int NY = lattice.node_matrix.shape().at(1);
+
         for (int i=1; i<9; i++)
         {
             // Evaluate new position
             for(int j=0; j<2; j++)
             {
-                newPos.at(j) = position.at(j) + (int)dir.at(i).at(j);
+                newPos.at(j) = position.at(j) + static_cast<int>(dir.at(i).at(j));
             }
             // If not an obstacle and is inside lattice compute the streaming
             if ( newPos.at(0)>=0 && newPos.at(0)<NX      // in rows
@@ -123,8 +123,12 @@ void Node::applyInletBoundary(Lattice& lattice, std::vector<double> boundary_vel
         // WindTunnel-Like problem left
         if (position.at(0)==0)
         {
-            velocity.at(0) = boundary_velocity.at(0);
-            velocity.at(1) = boundary_velocity.at(1);
+            const double halfDim = (NY) / 2.0;
+            const double temp = ((position.at(1)) / halfDim) - 1.0;
+            const double mul = 1.0 - temp * temp;
+            velocity.at(0) = boundary_velocity.at(0) * mul;
+            /*velocity.at(0) = boundary_velocity.at(0);
+            velocity.at(1) = boundary_velocity.at(1);*/
         }
     }
 }
@@ -148,12 +152,12 @@ void Node::applyZouHeBoundary(Lattice &lattice)
         // BC on right wall
         else if (position.at(0)==(NX-1) && position.at(1)!=0 && position.at(1)!=(NY-1))
         {
-            // I know rho so I evaluate velocity 
-            density = 1;
+            density = 1.0;
+            velocity.at(1) = 0.0;
             velocity.at(0) = f.at(0) + f.at(2) + f.at(4) + 2.0 * (f.at(1) + f.at(5) + f.at(8)) - 1.0;
-            f.at(3) = f.at(1) - 2.0 / 3.0 * velocity.at(0);
-            f.at(6) = f.at(8) - 0.5 * (f.at(2) - f.at(4)) - 1.0 / 6.0 * velocity.at(0);
-            f.at(7) = f.at(5) + 0.5 * (f.at(2) - f.at(4)) - 1.0 / 6.0 * velocity.at(0);
+            f.at(3) = f.at(1)- 2.0 / 3.0 * density * velocity.at(0);
+            f.at(6) = f.at(8)- 0.5 * (f.at(2) - f.at(4)) - 1.0 / 6.0 * density * velocity.at(0);//+ 0.5 * density * velocity.at(1);
+            f.at(7) = f.at(5)+ 0.5 * (f.at(2) - f.at(4)) - 1.0 / 6.0 * density * velocity.at(0);//- 0.5 * density * velocity.at(1);
         }
         // BC on bottom wall
         else if (position.at(0)!=0 && position.at(0)!=(NX-1) && position.at(1)==(NY-1))

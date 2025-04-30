@@ -149,11 +149,6 @@ protected:
     double feq(unsigned int k, unsigned int x, unsigned int y);
 
     /**
-     * @brief Performs collisions and updates velocities and densities.
-     */
-    void virtual compute();  
-
-    /**
      * @brief Applies boundary conditions.
      */
     void virtual apply_boundary_conditions();
@@ -161,7 +156,7 @@ protected:
 public : 
     const int NX; ///< Domain size in the x-direction.
     const int NY; ///< Domain size in the y-direction.
-
+    std::vector<std::vector<bool>> is_solid; // 1->solid, 0->fluid
 
     /**
      * @brief Constructor of the LBM class.
@@ -177,6 +172,11 @@ public :
      * @brief Evolves the system for a single iteration.
      */
     virtual void evolution();
+    
+    /**
+     * @brief Performs collisions and updates velocities and densities.
+     */
+    void virtual compute();  
 
     /**
      * @brief Evolves the system for a specified number of iterations.

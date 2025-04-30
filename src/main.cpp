@@ -8,14 +8,14 @@
 #include "LBM.hpp"
 #include "WindTunnelLBM.hpp"
 
-const int maxSteps = 5000; // number of time steps
+const int maxSteps = 2000; // number of time steps
 const double Re = 1000;
 const double u_lid = 0.5;
 
 const int ITERATIONS_PER_FRAME = 20;
 const int ITERATIONS_PER_PROGRESS_UPDATE = 10;
 
-const int NX = 400; // Dimension in the x-direction
+const int NX = 300; // Dimension in the x-direction
 const int NY = 200; // Dimension in the y-direction
 
 int main() {
@@ -27,7 +27,7 @@ int main() {
     }
     file_velocity << NX << "\n" << NY << "\n";
 
-    // Create the output file for velocity
+    // Create the output file for velocity 
     std::ofstream file_density("rho_data.txt");
     if (!file_density.is_open()) {
         std::cerr << "could not opene/create 'rho_data.txt'.\n";
@@ -37,11 +37,11 @@ int main() {
 
     //omp_set_num_threads(10);
 
-    WindTunnelLBM lbm(NX, NY, 0.3, 0.0, Re);
+    WindTunnelLBM lbm(NX, NY, 0.2, 0.1, Re);
 
-    // lbm.create_airfoil_mask( 70 );
+    lbm.create_airfoil_mask( 40 , 50 );
     // lbm.create_circular_mask( 25, 150, 50);          // TO DO 
-    lbm.create_rectangular_mask( 20, 20, 50, 90);
+    //lbm.create_rectangular_mask( 40, 40, 100, 0);
 
     auto startTime = std::chrono::high_resolution_clock::now();
 

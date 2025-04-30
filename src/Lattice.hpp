@@ -14,7 +14,7 @@ class Lattice
 
     private:
         int sigma;
-        double omega_P, omega_M;
+        double omega_P, omega_M, size;
         std::vector<double> boundary_velocity;
         Matrix<bool> obstacles;
         int currentStep = 0;

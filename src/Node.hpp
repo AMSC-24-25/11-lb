@@ -102,8 +102,7 @@ private:
     std::vector<int> position;     ///< Position in the lattice grid
 
     std::vector<double> w = {4.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 36.0, 1.0 / 36.0, 1.0 / 36.0,
-                                    1.0 / 36.0};
-                                    ///< Weights
+                                    1.0 / 36.0};///< Weights
     std::vector<std::vector<double>> dir = {{0, 0}, {1, 0}, {0, -1}, {-1, 0}, {0, 1}, {1, -1}, {-1, -1}, {-1, 1}, {1, 1}};
     std::vector<std::vector<double>> dir_by_dim = {{0, 1, 0, -1, 0, 1, -1, -1, 1}, {0, 0, -1, 0, 1, -1, -1, 1, 1}};
     std::vector<unsigned int> opp = {0, 3, 4, 1, 2, 7, 8, 5, 6};

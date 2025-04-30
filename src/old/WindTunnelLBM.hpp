@@ -41,8 +41,9 @@ public:
     /**
      * @brief Generate NACA airfoil mask
      * @param chord lenght of the profile
+     * @param x x position from where airfoil profile will start
      */
-    void create_airfoil_mask( double chord);
+    void create_airfoil_mask( double chord, double x);
 
     /**
      * @brief Generate a rectangular mask
@@ -65,6 +66,12 @@ public:
      * @brief Evolves the system for a single iteration.
      */
     void evolution() override;
+
+    /**
+     * @brief Compute drag and lift on a solid body
+     */
+    void computeForces();
+
 };
 
 #endif
