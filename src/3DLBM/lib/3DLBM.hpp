@@ -9,7 +9,9 @@
 #include <chrono>
 #include <string>
 #include <filesystem>
-#include <omp.h>
+#ifdef USE_OPENMP
+  #include <omp.h>
+#endif
 
 /**
  * @class 3DLBM
