@@ -7,8 +7,8 @@ VTK::VTK(unsigned int nx, unsigned int ny, unsigned int nz, double dx)
     : nx_(nx), ny_(ny), nz_(nz), dx_(dx) {}
 
 void VTK::writeVTKFrame(const std::string& filename,
-                              int iteration,
-                              const TDLBM& lbm) const
+                        int iteration,
+                        const TDLBM& lbm) const
 {
     std::ofstream vtkFile(filename);
     if (!vtkFile.is_open()) {
@@ -28,27 +28,19 @@ void VTK::writeVTKFrame(const std::string& filename,
 
     vtkFile << "SCALARS rho double 1\n";
     vtkFile << "LOOKUP_TABLE default\n";
-    for (int z = 0; z < nz_; ++z) {
-        for (int y = 0; y < ny_; ++y) {
-            for (int x = 0; x < nx_; ++x) {
-                int index = lbm.idx(x, y, z);
-                vtkFile << std::setprecision(8)
-                        << lbm.get_rho()[index] << "\n";
-            }
-        }
-    }
+    for (int z = 0; z < nz_; ++z)
+      for (int y = 0; y < ny_; ++y)
+        for (int x = 0; x < nx_; ++x)
+          vtkFile << std::setprecision(8)
+                  << lbm.get_rho()[lbm.idx(x,y,z)] << "\n";
 
     vtkFile << "VECTORS velocity double\n";
-    for (int z = 0; z < nz_; ++z) {
-        for (int y = 0; y < ny_; ++y) {
-            for (int x = 0; x < nx_; ++x) {
-                int index = lbm.idx(x, y, z);
-                vtkFile << lbm.get_u()[index].x << " "
-                        << lbm.get_u()[index].y << " "
-                        << lbm.get_u()[index].z << "\n";
-            }
+    for (int z = 0; z < nz_; ++z)
+      for (int y = 0; y < ny_; ++y)
+        for (int x = 0; x < nx_; ++x) {
+          auto v = lbm.get_u()[lbm.idx(x,y,z)];
+          vtkFile << v.x << " " << v.y << " " << v.z << "\n";
         }
-    }
 
     vtkFile.close();
 }

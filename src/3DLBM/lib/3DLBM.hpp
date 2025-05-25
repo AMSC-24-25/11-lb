@@ -1,290 +1,241 @@
 #ifndef TD_LBM_HPP
 #define TD_LBM_HPP
-#include <iostream>
-#include <fstream>
+
 #include <vector>
 #include <cmath>
-#include <sstream>
-#include <iomanip>
-#include <chrono>
-#include <string>
 #include <filesystem>
 #ifdef USE_OPENMP
   #include <omp.h>
 #endif
 
 /**
- * @class 3DLBM
- * @brief Implementation of the Lattice Boltzmann method (LBM) for the D3Q19 model.
- *
- * The LBM class represents a three-dimensional model with nineteen discrete velocities (D2Q9)
- * for fluid dynamics simulations based on the lattice Boltzmann approach.
-*/
+ * @struct TDouble
+ * @brief 3-component double vector for velocity, etc.
+ */
+struct TDouble {
+    double x; ///< x-component
+    double y; ///< y-component
+    double z; ///< z-component
+};
 
-
-struct TDouble { double x, y, z; };
-
-/** 
-    * @brief Compute TDouble.
-    * @param x direction x.
-    * @param y direction y.
-    * @param z direction z.
-    * @return TDouble
-    */
-   inline TDouble Set_TDouble(double x, double y, double z){
-    return {x, y, z};
+/**
+ * @brief Construct a TDouble.
+ * @param x x-component.
+ * @param y y-component.
+ * @param z z-component.
+ * @return TDouble struct.
+ */
+inline TDouble Set_TDouble(double x, double y, double z) {
+    return { x, y, z };
 }
 
+/**
+ * @brief Dot product of two TDouble.
+ * @param a first vector.
+ * @param b second vector.
+ * @return scalar product.
+ */
+inline double dot(const TDouble& a, const TDouble& b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+/**
+ * @class TDLBM
+ * @brief Implements the 3D D3Q19 Lattice–Boltzmann method with TRT collision model.
+ */
 class TDLBM {
-protected:  
-    static constexpr int Q = 19; ///< Number of discrete velocities (D3Q19).
+protected:
+    static constexpr int Q = 19; ///< Number of discrete directions.
 
-    //Main variables
-     
-    int nx;
-    int ny;
-    int nz;
-    int ncells;
-    double dx;
-    double dt;
-    double rho0;
-    double U_lid;
-    double L;
-    double nu;
-    double tau;
-    int Re;
-    int Steps;
-    int ITERATIONS_PER_FRAME;
-    int ITERATIONS_PER_PROGRESS_UPDATE;
-    std::vector<TDouble> e;
-    std::vector<double> f;
-    std::vector<double> f_new;
-    std::vector<double> rho;
-    std::vector<TDouble> u;
-    std::vector<TDouble> u_prev;
-    
+    // Domain and simulation parameters
+    int nx, ny, nz;      ///< grid dimensions
+    double U_lid;        ///< lid velocity
+    double Re;           ///< target Reynolds number
 
-    
+    // Numerical parameters
+    double dx, dt;       ///< spatial and temporal steps
+    double rho0;         ///< initial density
+    double L;            ///< characteristic length
+    double nu;           ///< kinematic viscosity
+    double tau;          ///< relaxation time
 
-    /** 
-    * @brief Compute a dot.
-    * @param a  TDouble.
-    * @param b  Tdouble.
-    */
-    inline double dot(const TDouble& a, const TDouble& b){
-        return a.x * b.x + a.y * b.y + a.z * b.z;
-    }
-
-    /** 
-    * @brief Compute viscosity nu.
-    * @param U velocity.
-    * @param L length .
-    * @return nu
-    */
-    inline double compute_nu(double U, double L, int Re){
-        return (U * L) / Re;
-    }
-
-    /** 
-    * @brief Compute viscosity nu.
-    * @param nu viscosity.
-    * @return tau
-    */
-    inline double compute_tau(double nu){
-        return (6.0 * nu + 1.0) / 2.0;
-    }
-
-    
-   /** 
-    * @brief Equilibrium weights
-    * @param i index.
-    */
-    double weight(int i){
-        if (i == 0)
-            return 1.0/3.0;
-        else if (i >= 1 && i < 7)
-            return 1.0/18.0;
-        else
-            return 1.0/36.0;
-    }
-
-    /** 
-    * @brief Set the 19 direction vector of D3Q19
-    * @param direction array.
-    */
-     void set_e_values(std::vector<TDouble>& e);
-
-    /** 
-    * @brief function to obtain the opposite direction.
-    * @param i index direction.
-    */
-    int get_opposite_direction(int i){
-        switch(i) {
-            case 0: return 0;  // riposo
-            case 1: return 2;  // +x -> -x
-            case 2: return 1;  // -x -> +x
-            case 3: return 4;  // +y -> -y
-            case 4: return 3;  // -y -> +y
-            case 5: return 6;  // +z -> -z
-            case 6: return 5;  // -z -> +z
-            case 7: return 8;  // +x,+y -> -x,-y
-            case 8: return 7;  // -x,-y -> +x,+y
-            case 9: return 10; // -x,+y -> +x,-y
-            case 10: return 9; // +x,-y -> -x,+y
-            case 11: return 12; // +x,+z -> -x,-z
-            case 12: return 11; // -x,-z -> +x,+z
-            case 13: return 14; // +y,+z -> -y,-z
-            case 14: return 13; // -y,-z -> +y,+z
-            case 15: return 16; // -x,+z -> +x,-z
-            case 16: return 15; // +x,-z -> -x,+z
-            case 17: return 18; // -y,+z -> +y,-z
-            case 18: return 17; // +y,-z -> -y,+z
-            default: return 0;
-        }
-    }
-
-    /** 
-    * @brief compute the equilibrium function.
-    * @param rho.
-    * @param w weight.
-    * @param e direction array.
-    * @param u .
-    * @return equilibrium function
-    */
-    double feq(double rho, double w, const TDouble& e, const TDouble& u);
-
-    /** 
-    * @brief init the density and velocity in every cells.
-    * @param rho.
-    * @param u.
-    */
-    void init_rho_v(std::vector<double>& rho, std::vector<TDouble>& u);
-
-    /** 
-    * @brief init function f.
-    * @param f.
-    * @param f_new new function. 
-    * @param rho. 
-    * @param u.
-    * @param e array directions.
-    */
-    void init_f(std::vector<double>& f, std::vector<double>& f_new,
-    const std::vector<double>& rho, const std::vector<TDouble>& u,
-    const std::vector<TDouble>& e);
-
-    /** 
-    * @brief calculate rho value.
-    * @param f function.
-    * @param x direction x. 
-    * @param y direction y. 
-    * @param z direction z.
-    */
-    double compute_rho(const std::vector<double>& f, int x, int y, int z);
-
-    /** 
-    * @brief calculate u value for each direction.
-    * @param f function.
-    * @param rho. 
-    * @param e direction array;
-    * @param x direction x. 
-    * @param y direction y. 
-    * @param z direction z.
-    */
-    TDouble compute_u(const std::vector<double>& f, double rho,
-    const std::vector<TDouble>& e, int x, int y, int z);
-
-    /** 
-    * @brief collision operator TRT.
-    * @param f function.
-    * @param rho. 
-    * @param u. 
-    * @param e.
-    */
-    void collide_trt(std::vector<double>& f, std::vector<double>& rho,
-    std::vector<TDouble>& u, const std::vector<TDouble>& e);
-
-    /** 
-    * @brief streaming operatore with bounce-back for node out of the domain.
-    * @param f function.
-    * @param f_new new function.  
-    * @param e.
-    */
-    void stream(const std::vector<double>& f, std::vector<double>& f_new, const std::vector<TDouble>& e);
-
-    /** 
-    * @brief apply the boundary condition for the driven cavity: Zou-he and no slip condition.
-    * @param f.
-    * @param e directions array.
-    */
-    void apply_boundary_conditions(std::vector<double>& f, const std::vector<TDouble>& e);
-
-
+    // Simulation data
+    int ncells;                     ///< total cells
+    std::vector<TDouble> e;         ///< direction vectors
+    std::vector<double> f, f_new;   ///< distribution functions
+    std::vector<double> rho;        ///< density field
+    std::vector<TDouble> u, u_prev; ///< velocity fields
 
 public:
-    
-    
-    
     /**
-     * @brief Constructor of the TDLBM class.
-     * @param nx Domain size in the x-direction.
-     * @param ny Domain size in the y-direction.
-     * @param nz Domain size in the y-direction.
-     * @param u_lid Velocity at the top boundary.
-     * @param Re Reynolds number.
+     * @brief Constructor.
+     * @param nx number of cells in x.
+     * @param ny number of cells in y.
+     * @param nz number of cells in z.
+     * @param u_lid lid velocity.
+     * @param Re target Reynolds number.
      */
     TDLBM(unsigned int nx, unsigned int ny, unsigned int nz, double u_lid, double Re);
 
-    /** 
-    * @brief helper to find index.
-    * @param x direction x.
-    * @param y direction y.
-    * @param z direction z.
-    * @return index
-    */
-    inline int idx(int x, int y, int z)const{
-    return x + nx * y + nx * ny * z;
-}
-
-/** 
-* @brief helper to find distribution vector index in a specific direction.
-* @param x direction x.
-* @param y direction y.
-* @param z direction z.
-* @param i index.
-* @return index for distribution vector
-*/
-  inline int idxi(int x, int y, int z, int i){
-    return x + (((y + z * ny) * nx) + (nx * ny * nz * i));
-}
-
+    /**
+     * @brief Equilibrium weight for a given direction.
+     * @param i direction index.
+     * @return equilibrium weight.
+     */
+    double weight(int i) const;
 
     /**
-     * @brief Evolves the system for a specified number of iterations.
-     * @param iterations Number of iterations.
+     * @brief Get the opposite direction index.
+     * @param i direction index.
+     * @return opposite direction index.
+     */
+    int get_opposite_direction(int i) const;
+
+    /**
+     * @brief Compute linear cell index.
+     * @param x x-coordinate.
+     * @param y y-coordinate.
+     * @param z z-coordinate.
+     * @return linear index.
+     */
+    int idx(int x, int y, int z) const;
+
+    /**
+     * @brief Compute linear distribution index.
+     * @param x x-coordinate.
+     * @param y y-coordinate.
+     * @param z z-coordinate.
+     * @param i direction index.
+     * @return linear distribution index.
+     */
+    int idxi(int x, int y, int z, int i) const;
+
+    /**
+     * @brief Initialize density and velocity fields.
+     * @param rho density vector.
+     * @param u velocity vector.
+     */
+    void init_rho_v(std::vector<double>& rho, std::vector<TDouble>& u);
+
+    /**
+     * @brief Initialize distribution functions.
+     * @param f distribution vector.
+     * @param f_new temp distribution vector.
+     * @param rho density vector.
+     * @param u velocity vector.
+     * @param e direction vectors.
+     */
+    void init_f(std::vector<double>& f,
+                std::vector<double>& f_new,
+                const std::vector<double>& rho,
+                const std::vector<TDouble>& u,
+                const std::vector<TDouble>& e);
+
+    /**
+     * @brief Set the D3Q19 direction vectors.
+     * @param e vector of direction vectors.
+     */
+    void set_e_values(std::vector<TDouble>& e);
+
+    /**
+     * @brief TRT collision operator.
+     * @param f distribution functions.
+     * @param rho density field.
+     * @param u velocity field.
+     * @param e direction vectors.
+     */
+    void collide_trt(std::vector<double>& f,
+                     std::vector<double>& rho,
+                     std::vector<TDouble>& u,
+                     const std::vector<TDouble>& e);
+
+    /**
+     * @brief Streaming step of the distributions.
+     * @param f current distributions.
+     * @param f_new post-streaming distributions.
+     * @param e direction vectors.
+     */
+    void stream(const std::vector<double>& f,
+                std::vector<double>& f_new,
+                const std::vector<TDouble>& e);
+
+    /**
+     * @brief Apply boundary conditions (lid-driven cavity).
+     * @param f distribution functions.
+     * @param e direction vectors.
+     */
+    void apply_boundary_conditions(std::vector<double>& f,
+                                   const std::vector<TDouble>& e);
+
+    /**
+     * @brief Perform one time step evolution.
      */
     void evolution();
 
     /**
-     * @brief getter method.
+     * @brief Equilibrium distribution function.
+     * @param rho cell density.
+     * @param w weight.
+     * @param e direction vector.
+     * @param u cell velocity.
+     * @return equilibrium f.
      */
-    const std::vector<double>& get_rho() const { return rho; }
+    double feq(double rho, double w, const TDouble& e, const TDouble& u) const;
+
     /**
-     * @brief getter method.
+     * @brief Compute density in a cell (read-only).
+     * @param f distribution vector.
+     * @param x x-coordinate.
+     * @param y y-coordinate.
+     * @param z z-coordinate.
+     * @return cell density.
      */
-    const std::vector<TDouble>& get_u() const { return u; }
+    double compute_rho(const std::vector<double>& f, int x, int y, int z) const;
+
     /**
-     * @brief getter method.
+     * @brief Compute velocity in a cell (read-only).
+     * @param f distribution vector.
+     * @param rho cell density.
+     * @param e direction vectors.
+     * @param x x-coordinate.
+     * @param y y-coordinate.
+     * @param z z-coordinate.
+     * @return cell velocity.
+     */
+    TDouble compute_u(const std::vector<double>& f,
+                      double rho,
+                      const std::vector<TDouble>& e,
+                      int x, int y, int z) const;
+
+    /**
+     * @brief Get spatial step dx.
+     * @return dx.
      */
     double get_dx() const { return dx; }
+
     /**
-     * @brief getter method.
+     * @brief Get relaxation time τ.
+     * @return τ.
      */
     double get_tau() const { return tau; }
 
     /**
-     * @brief getter method.
+     * @brief Get kinematic viscosity ν.
+     * @return ν.
      */
     double get_nu() const { return nu; }
-    
+
+    /**
+     * @brief Get velocity field.
+     * @return const reference to velocity vector.
+     */
+    const std::vector<TDouble>& get_u() const { return u; }
+
+    /**
+     * @brief Get density field.
+     * @return const reference to density vector.
+     */
+    const std::vector<double>& get_rho() const { return rho; }
 };
-#endif
+
+#endif // TD_LBM_HPP

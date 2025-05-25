@@ -1,67 +1,15 @@
 #include "3DLBM.hpp"
-namespace fs = std::filesystem;
-
-void TDLBM::init_rho_v(std::vector<double>& rho, std::vector<TDouble>& u){
-    #pragma omp parallel for collapse(3)
-    for (int z = 0; z < nz; ++z)
-        for (int y = 0; y < ny; ++y)
-            for (int x = 0; x < nx; ++x) {
-                int index = idx(x, y, z);
-                rho[index] = rho0;
-                u[index]   = Set_TDouble(0.0, 0.0, 0.0);
-            }
-}
-
-void TDLBM::init_f(std::vector<double>& f, std::vector<double>& f_new,
-    const std::vector<double>& rho, const std::vector<TDouble>& u,
-    const std::vector<TDouble>& e){
-        #pragma omp parallel for collapse(3)
-        for (int z = 0; z < nz; ++z){
-            for (int y = 0; y < ny; ++y){
-                for (int x = 0; x < nx; ++x) {
-                    int cell = idx(x, y, z);
-                    for (int i = 0; i < Q; ++i) {
-                        double f_val = feq(rho[cell], weight(i), e[i], u[cell]);
-                        int pos = idxi(x, y, z, i);
-                        f[pos]     = f_val;
-                        f_new[pos] = f_val;
-                    }
-                }
-            }
-        }         
-}
-
-void TDLBM::set_e_values(std::vector<TDouble>& e){
-    if (e.size() != Q) e.resize(Q);
-    e[0]  = Set_TDouble( 0.0,  0.0,  0.0);  // riposo
-    e[1]  = Set_TDouble( 1.0,  0.0,  0.0);  // +x
-    e[2]  = Set_TDouble(-1.0,  0.0,  0.0);  // -x
-    e[3]  = Set_TDouble( 0.0,  1.0,  0.0);  // +y
-    e[4]  = Set_TDouble( 0.0, -1.0,  0.0);  // -y
-    e[5]  = Set_TDouble( 0.0,  0.0,  1.0);  // +z
-    e[6]  = Set_TDouble( 0.0,  0.0, -1.0);  // -z
-    e[7]  = Set_TDouble( 1.0,  1.0,  0.0);  // +x,+y
-    e[8]  = Set_TDouble(-1.0, -1.0,  0.0);  // -x,-y
-    e[9]  = Set_TDouble(-1.0,  1.0,  0.0);  // -x,+y
-    e[10] = Set_TDouble( 1.0, -1.0,  0.0);  // +x,-y
-    e[11] = Set_TDouble( 1.0,  0.0,  1.0);  // +x,+z
-    e[12] = Set_TDouble(-1.0,  0.0, -1.0);  // -x,-z
-    e[13] = Set_TDouble( 0.0,  1.0,  1.0);  // +y,+z
-    e[14] = Set_TDouble( 0.0, -1.0, -1.0);  // -y,-z
-    e[15] = Set_TDouble(-1.0,  0.0,  1.0);  // -x,+z
-    e[16] = Set_TDouble( 1.0,  0.0, -1.0);  // +x,-z
-    e[17] = Set_TDouble( 0.0, -1.0,  1.0);  // -y,+z
-    e[18] = Set_TDouble( 0.0,  1.0, -1.0);  // +y,-z
-}
 
 
-TDLBM::TDLBM(unsigned int nx, unsigned int ny, unsigned int nz, double U_lid, double Re) : nx(nx), ny(ny), nz(nz), U_lid(U_lid), Re(Re) {
-    dx = 1.0;
-    dt = 1.0;
-    rho0 = 1.0;
-    L = (ny - 1) * dx;
-    nu = compute_nu(U_lid , L , Re);
-    tau = compute_tau(nu);
+TDLBM::TDLBM(unsigned int nx_, unsigned int ny_, unsigned int nz_, double U_lid_, double Re_)
+    : nx(nx_), ny(ny_), nz(nz_), U_lid(U_lid_), Re(Re_)
+{
+    dx    = 1.0;
+    dt    = 1.0;
+    rho0  = 1.0;
+    L     = (ny - 1) * dx;
+    nu    = (U_lid * L) / Re;            
+    tau   = (6.0 * nu + 1.0) / 2.0;      
     ncells = nx * ny * nz;
 
     e.resize(Q);
@@ -72,43 +20,141 @@ TDLBM::TDLBM(unsigned int nx, unsigned int ny, unsigned int nz, double U_lid, do
     u_prev.resize(ncells, {0.0, 0.0, 0.0});
 
     set_e_values(e);
-
     init_rho_v(rho, u);
     rho[idx(nx/2, ny/2, nz/2)] *= 1.0001;
     init_f(f, f_new, rho, u, e);
 }
 
-double TDLBM::feq(double rho, double w, const TDouble& e, const TDouble& u){
-    double eu = dot(e, u);
-    double uu = dot(u, u);
-    return rho * w * (1.0 + 3.0 * eu + 4.5 * eu * eu - 1.5 * uu);
+double TDLBM::weight(int i) const {
+    if (i == 0)            return 1.0/3.0;
+    else if (i < 7)        return 1.0/18.0;
+    else                   return 1.0/36.0;
 }
 
-double TDLBM::compute_rho(const std::vector<double>& f, int x, int y, int z){
-    double rho_cell = 0.0;
-    for (int i = 0; i < Q; ++i)
-        rho_cell += f[idxi(x, y, z, i)];
-    return rho_cell;
-}
-
-TDouble TDLBM::compute_u(const std::vector<double>& f, double rho, const std::vector<TDouble>& e, int x, int y, int z){
-
-        TDouble u_cell = {0.0, 0.0, 0.0};
-        for (int i = 0; i < Q; ++i) {
-            int pos = idxi(x, y, z, i);
-            u_cell.x += f[pos] * e[i].x;
-            u_cell.y += f[pos] * e[i].y;
-            u_cell.z += f[pos] * e[i].z;
+int TDLBM::get_opposite_direction(int i) const {
+    switch(i) {
+            case 0: return 0;  
+            case 1: return 2;  
+            case 2: return 1;  
+            case 3: return 4;  
+            case 4: return 3;  
+            case 5: return 6;  
+            case 6: return 5;  
+            case 7: return 8;  
+            case 8: return 7;
+            case 9: return 10;
+            case 10: return 9;
+            case 11: return 12;
+            case 12: return 11;
+            case 13: return 14;
+            case 14: return 13;
+            case 15: return 16;
+            case 16: return 15;
+            case 17: return 18;
+            case 18: return 17;
+            default: return 0;
         }
-        u_cell.x /= rho;
-        u_cell.y /= rho;
-        u_cell.z /= rho;
-        return u_cell;
 }
 
-void TDLBM::collide_trt(std::vector<double>& f, std::vector<double>& rho,
-    std::vector<TDouble>& u, const std::vector<TDouble>& e){
-        double tau_val = get_tau();
+int TDLBM::idx(int x, int y, int z) const {
+    return x + nx * y + nx * ny * z;
+}
+
+int TDLBM::idxi(int x, int y, int z, int i) const {
+    return idx(x,y,z) * Q + i;
+}
+
+void TDLBM::init_rho_v(std::vector<double>& rho, std::vector<TDouble>& u){
+    #pragma omp parallel for collapse(3)
+    for (int z=0; z<nz; ++z)
+      for (int y=0; y<ny; ++y)
+        for (int x=0; x<nx; ++x){
+          int id = idx(x,y,z);
+          rho[id] = rho0;
+          u[id]   = Set_TDouble(0.0,0.0,0.0);
+        }
+}
+
+void TDLBM::init_f(std::vector<double>& f,
+                   std::vector<double>& f_new,
+                   const std::vector<double>& rho,
+                   const std::vector<TDouble>& u,
+                   const std::vector<TDouble>& e)
+{
+    #pragma omp parallel for collapse(3)
+    for (int z=0; z<nz; ++z)
+     for (int y=0; y<ny; ++y)
+      for (int x=0; x<nx; ++x){
+        int cell = idx(x,y,z);
+        for (int i=0; i<Q; ++i){
+          double fval = feq(rho[cell], weight(i), e[i], u[cell]);
+          int pos = idxi(x,y,z,i);
+          f[pos]     = fval;
+          f_new[pos] = fval;
+        }
+      }
+}
+
+void TDLBM::set_e_values(std::vector<TDouble>& e){
+   if (e.size() != Q) e.resize(Q);
+    e[0]  = Set_TDouble( 0.0,  0.0,  0.0);  
+    e[1]  = Set_TDouble( 1.0,  0.0,  0.0);
+    e[2]  = Set_TDouble(-1.0,  0.0,  0.0);
+    e[3]  = Set_TDouble( 0.0,  1.0,  0.0);
+    e[4]  = Set_TDouble( 0.0, -1.0,  0.0);
+    e[5]  = Set_TDouble( 0.0,  0.0,  1.0);
+    e[6]  = Set_TDouble( 0.0,  0.0, -1.0);
+    e[7]  = Set_TDouble( 1.0,  1.0,  0.0);
+    e[8]  = Set_TDouble(-1.0, -1.0,  0.0);
+    e[9]  = Set_TDouble(-1.0,  1.0,  0.0);
+    e[10] = Set_TDouble( 1.0, -1.0,  0.0);
+    e[11] = Set_TDouble( 1.0,  0.0,  1.0);
+    e[12] = Set_TDouble(-1.0,  0.0, -1.0);
+    e[13] = Set_TDouble( 0.0,  1.0,  1.0);
+    e[14] = Set_TDouble( 0.0, -1.0, -1.0);
+    e[15] = Set_TDouble(-1.0,  0.0,  1.0);
+    e[16] = Set_TDouble( 1.0,  0.0, -1.0);
+    e[17] = Set_TDouble( 0.0, -1.0,  1.0);
+    e[18] = Set_TDouble( 0.0,  1.0, -1.0);
+}
+
+double TDLBM::feq(double rho_, double w,
+                  const TDouble& ei, const TDouble& ui) const
+{
+    double eu = dot(ei, ui);
+    double uu = dot(ui, ui);
+    return rho_ * w * (1.0 + 3.0*eu + 4.5*eu*eu - 1.5*uu);
+}
+
+double TDLBM::compute_rho(const std::vector<double>& f, int x, int y, int z) const {
+    double sum = 0.0;
+    for (int i=0; i<Q; ++i)
+      sum += f[idxi(x,y,z,i)];
+    return sum;
+}
+
+TDouble TDLBM::compute_u(const std::vector<double>& f, double rho_,
+                         const std::vector<TDouble>& e, int x, int y, int z) const
+{
+    TDouble u_cell = {0.0,0.0,0.0};
+    for (int i=0; i<Q; ++i){
+      int pos = idxi(x,y,z,i);
+      u_cell.x += f[pos] * e[i].x;
+      u_cell.y += f[pos] * e[i].y;
+      u_cell.z += f[pos] * e[i].z;
+    }
+    u_cell.x /= rho_;
+    u_cell.y /= rho_;
+    u_cell.z /= rho_;
+    return u_cell;
+}
+
+void TDLBM::collide_trt(std::vector<double>& f,
+                        std::vector<double>& rho,
+                        std::vector<TDouble>& u,
+                        const std::vector<TDouble>& e)
+{
+    double tau_val = get_tau();
     double omega_plus = 1.0 / tau_val;
     double temp = (1.0 / omega_plus - 0.5);
     double omega_minus = 1.0 / ((0.25 / temp) + 0.5);
@@ -153,7 +199,10 @@ void TDLBM::collide_trt(std::vector<double>& f, std::vector<double>& rho,
     }
 }
 
-void TDLBM::stream(const std::vector<double>& f, std::vector<double>& f_new, const std::vector<TDouble>& e){
+void TDLBM::stream(const std::vector<double>& f,
+                   std::vector<double>& f_new,
+                   const std::vector<TDouble>& e)
+{
     std::fill(f_new.begin(), f_new.end(), 0.0);
     #pragma omp parallel for collapse(3)
     for (int z = 0; z < nz; ++z) {
@@ -178,11 +227,12 @@ void TDLBM::stream(const std::vector<double>& f, std::vector<double>& f_new, con
     }
 }
 
-void TDLBM::apply_boundary_conditions(std::vector<double>& f, const std::vector<TDouble>& e){
-    
-    #pragma omp parallel
+void TDLBM::apply_boundary_conditions(std::vector<double>& f,
+                                      const std::vector<TDouble>& e)
+{
+   #pragma omp parallel
     {
-        // Coperchio superiore: y = ny - 1, moving lid con u = (U_lid, 0, 0)
+        
         #pragma omp for collapse(2) schedule(static)
         for (int z = 0; z < nz; ++z) {
             for (int x = 0; x < nx; ++x) {
@@ -190,7 +240,7 @@ void TDLBM::apply_boundary_conditions(std::vector<double>& f, const std::vector<
                 double rho_wall = compute_rho(f, x, y, z);
                 TDouble u_wall = {U_lid, 0.0, 0.0};
                 for (int i = 0; i < Q; ++i) {
-                    if (e[i].y < 0) { // direzioni che penetrano nella parete dal coperchio
+                    if (e[i].y < 0) { 
                         int pos = idxi(x, y, z, i);
                         int i_opposite = get_opposite_direction(i);
                         f[pos] = f[idxi(x, y, z, i_opposite)]
@@ -200,7 +250,7 @@ void TDLBM::apply_boundary_conditions(std::vector<double>& f, const std::vector<
             }
         }
 
-        // Parete inferiore: y = 0, parete fissa (u = 0)
+        
         #pragma omp for collapse(2) schedule(static)
         for (int z = 0; z < nz; ++z) {
             for (int x = 0; x < nx; ++x) {
@@ -208,7 +258,7 @@ void TDLBM::apply_boundary_conditions(std::vector<double>& f, const std::vector<
                 double rho_wall = compute_rho(f, x, y, z);
                 TDouble u_wall = {0.0, 0.0, 0.0};
                 for (int i = 0; i < Q; ++i) {
-                    if (e[i].y > 0) { // direzioni che penetrano nella parete dal dominio
+                    if (e[i].y > 0) { 
                         int pos = idxi(x, y, z, i);
                         int i_opposite = get_opposite_direction(i);
                         f[pos] = f[idxi(x, y, z, i_opposite)]
@@ -218,7 +268,7 @@ void TDLBM::apply_boundary_conditions(std::vector<double>& f, const std::vector<
             }
         }
 
-        // Parete sinistra: x = 0, parete fissa (u = 0)
+        
         #pragma omp for collapse(2) schedule(static)
         for (int z = 0; z < nz; ++z) {
             for (int y = 0; y < ny; ++y) {
@@ -226,7 +276,7 @@ void TDLBM::apply_boundary_conditions(std::vector<double>& f, const std::vector<
                 double rho_wall = compute_rho(f, x, y, z);
                 TDouble u_wall = {0.0, 0.0, 0.0};
                 for (int i = 0; i < Q; ++i) {
-                    if (e[i].x > 0) { // direzioni che entrano nel dominio dalla parete
+                    if (e[i].x > 0) { 
                         int pos = idxi(x, y, z, i);
                         int i_opposite = get_opposite_direction(i);
                         f[pos] = f[idxi(x, y, z, i_opposite)]
@@ -236,7 +286,7 @@ void TDLBM::apply_boundary_conditions(std::vector<double>& f, const std::vector<
             }
         }
 
-        // Parete destra: x = nx - 1, parete fissa (u = 0)
+        
         #pragma omp for collapse(2) schedule(static)
         for (int z = 0; z < nz; ++z) {
             for (int y = 0; y < ny; ++y) {
@@ -244,7 +294,7 @@ void TDLBM::apply_boundary_conditions(std::vector<double>& f, const std::vector<
                 double rho_wall = compute_rho(f, x, y, z);
                 TDouble u_wall = {0.0, 0.0, 0.0};
                 for (int i = 0; i < Q; ++i) {
-                    if (e[i].x < 0) { // direzioni che entrano nel dominio dalla parete
+                    if (e[i].x < 0) { 
                         int pos = idxi(x, y, z, i);
                         int i_opposite = get_opposite_direction(i);
                         f[pos] = f[idxi(x, y, z, i_opposite)]
@@ -254,7 +304,7 @@ void TDLBM::apply_boundary_conditions(std::vector<double>& f, const std::vector<
             }
         }
 
-        // Parete frontale: z = 0, parete fissa (u = 0)
+        
         #pragma omp for collapse(2) schedule(static)
         for (int y = 0; y < ny; ++y) {
             for (int x = 0; x < nx; ++x) {
@@ -262,7 +312,7 @@ void TDLBM::apply_boundary_conditions(std::vector<double>& f, const std::vector<
                 double rho_wall = compute_rho(f, x, y, z);
                 TDouble u_wall = {0.0, 0.0, 0.0};
                 for (int i = 0; i < Q; ++i) {
-                    if (e[i].z > 0) { // direzioni che entrano nel dominio dalla parete
+                    if (e[i].z > 0) { 
                         int pos = idxi(x, y, z, i);
                         int i_opposite = get_opposite_direction(i);
                         f[pos] = f[idxi(x, y, z, i_opposite)]
@@ -272,7 +322,7 @@ void TDLBM::apply_boundary_conditions(std::vector<double>& f, const std::vector<
             }
         }
 
-        // Parete posteriore: z = nz - 1, parete fissa (u = 0)
+        
         #pragma omp for collapse(2) schedule(static)
         for (int y = 0; y < ny; ++y) {
             for (int x = 0; x < nx; ++x) {
@@ -280,7 +330,7 @@ void TDLBM::apply_boundary_conditions(std::vector<double>& f, const std::vector<
                 double rho_wall = compute_rho(f, x, y, z);
                 TDouble u_wall = {0.0, 0.0, 0.0};
                 for (int i = 0; i < Q; ++i) {
-                    if (e[i].z < 0) { // direzioni che entrano nel dominio dalla parete
+                    if (e[i].z < 0) { 
                         int pos = idxi(x, y, z, i);
                         int i_opposite = get_opposite_direction(i);
                         f[pos] = f[idxi(x, y, z, i_opposite)]
