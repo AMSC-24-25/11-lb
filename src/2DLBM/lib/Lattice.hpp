@@ -28,10 +28,6 @@ class Lattice
         bool        useMask_;   
         std::string maskType_;  
         double      maskSize_;  
-
-
-        
-
 };
 
 

@@ -79,9 +79,7 @@ Lattice::Lattice(unsigned NX_, unsigned steps_, double Re_,
   : NX(NX_), NY(NX_), steps(steps_), Re(Re_),
     outDir_(outDir), useMask_(useMask),
     maskType_(maskType), maskSize_(maskSize),
-    node_matrix({NX, NY}), obstacles({NX, NY})
 {
-    
     const unsigned int NY = NX_;
     ITERATIONS_PER_FRAME = 25;
     ITERATIONS_PER_PROGRESS_UPDATE = 10;
