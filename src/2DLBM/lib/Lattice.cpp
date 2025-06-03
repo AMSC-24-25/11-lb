@@ -73,14 +73,16 @@ std::vector <int> evaluateBoundary(const std::vector<int>& indices, const Matrix
     return boundary_here;
 }
 
-Lattice::Lattice()
+Lattice::Lattice(unsigned NX_, unsigned steps_, double Re_,
+                 bool useMask, const std::string &maskType,
+                 double maskSize, const std::string &outDir)
+  : NX(NX_), NY(NX_), steps(steps_), Re(Re_),
+    outDir_(outDir), useMask_(useMask),
+    maskType_(maskType), maskSize_(maskSize),
+    node_matrix({NX, NY}), obstacles({NX, NY})
 {
-    /*  TO SET MANUALLY  */
-    // Hard coded variables
-    const unsigned int NX = 800;
-    const unsigned int NY = 300;
-    const double Re = 1000;
-    maxSteps = 20000;
+    
+    const unsigned int NY = NX_;
     ITERATIONS_PER_FRAME = 25;
     ITERATIONS_PER_PROGRESS_UPDATE = 10;
     boundary_velocity.resize(2);
