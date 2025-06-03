@@ -10,17 +10,21 @@ Algorithm (choose one):
   --2dLbm                     Run 2-D LBM solver
 
 Common options:
-  -m,  --mesh NX              Mesh dimension (single value for cubic mesh)
+  -m,  --mesh NX,NY,NZ              Mesh dimension (single value for cubic mesh)
   -s,  --steps N              Number of time steps to simulate
   -r,  --re RE                Reynolds number
   -d,  --dir PATH             Output directory (default: ./output)
-  -itf,--iters-per-frame N    Iterations per frame for output (default: 10)
   -omp,--Openmp               Enable OpenMP
   -h,  --help                 Show this help
 
-2-D specific:
+  2-D specific:
   --mask TYPE                 Enable obstacle mask of TYPE {circle|rect|airfoil}
   --mask-size VAL             Characteristic size of the mask (required with --mask)
+
+  3-D specific:
+  -itf,--iters-per-frame N    Iterations per frame for output (default: 10)
+
+
 EOF
 }
 
@@ -69,7 +73,7 @@ if [[ $ALGORITHM == "2dLbm" && $USE_MASK == true && -z $MASK_SIZE ]]; then
 fi
 
 # Build
-BUILD_DIR="build-${ALGORITHM}"
+BUILD_DIR="build"
 mkdir -p "$BUILD_DIR"
 pushd "$BUILD_DIR" > /dev/null
 CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Release"
@@ -95,21 +99,21 @@ if [[ $ALGORITHM == "3dLbm" ]]; then
 elif [[ $ALGORITHM == "2dLbm" ]]; then
   if [[ $USE_MASK == true ]]; then
     if [[ $USE_CUSTOM_DIR == true ]]; then
-      exec "${BUILD_DIR}/11-LB-2D" \
+      exec "${BUILD_DIR}/11-LB" \
            "$MESH_SIZE" "$TIME_STEPS" "$REYNOLDS_NUMBER" \
            "$MASK_TYPE" "$MASK_SIZE" "$OUTPUT_DIR"
     else
-      exec "${BUILD_DIR}/11-LB-2D" \
+      exec "${BUILD_DIR}/11-LB" \
            "$MESH_SIZE" "$TIME_STEPS" "$REYNOLDS_NUMBER"  \
            "$MASK_TYPE" "$MASK_SIZE"
     fi
   else
     if [[ $USE_CUSTOM_DIR == true ]]; then
-      exec "${BUILD_DIR}/11-LB-2D" \ 
+      exec "${BUILD_DIR}/11-LB" \ 
            "$MESH_SIZE" "$TIME_STEPS" "$REYNOLDS_NUMBER" \ 
            "$OUTPUT_DIR"
     else
-      exec "${BUILD_DIR}/11-LB-2D" \ 
+      exec "${BUILD_DIR}/11-LB" \ 
            "$MESH_SIZE" "$TIME_STEPS" "$REYNOLDS_NUMBER" 
     fi
   fi

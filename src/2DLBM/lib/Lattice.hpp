@@ -8,7 +8,9 @@
 class Lattice
 {
     public:
-        Lattice();
+        Lattice(unsigned NX, unsigned steps, double Re,
+        bool useMask, const std::string &maskType,
+        double maskSize, const std::string &outDir);
         void simulate();
         Matrix<Node> node_matrix;
 
@@ -21,6 +23,14 @@ class Lattice
         int maxSteps;
         int ITERATIONS_PER_FRAME;
         int ITERATIONS_PER_PROGRESS_UPDATE;
+
+        std::string outDir_;    
+        bool        useMask_;   
+        std::string maskType_;  
+        double      maskSize_;  
+
+
+        
 
 };
 

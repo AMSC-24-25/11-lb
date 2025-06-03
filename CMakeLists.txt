@@ -42,9 +42,9 @@ if(ENABLE_2D)
          src/2DLBM/*.cpp
          src/2DLBM/lib/*.cpp
          src/common/*.cpp)
-    add_executable(11-LB-2D ${SOURCES_2D})
+    add_executable(11-LB ${SOURCES_2D})
     if(WITH_OPENMP)
-        target_link_libraries(11-LB-2D PRIVATE ${OpenMP_omp_LIBRARY})
-        target_compile_definitions(11-LB-2D PRIVATE USE_OPENMP)
+        target_link_libraries(11-LB PRIVATE ${OpenMP_omp_LIBRARY})
+        target_compile_definitions(11-LB PRIVATE USE_OPENMP)
     endif()
 endif()
