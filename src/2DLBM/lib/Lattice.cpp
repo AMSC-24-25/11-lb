@@ -73,14 +73,14 @@ std::vector <int> evaluateBoundary(const std::vector<int>& indices, const Matrix
     return boundary_here;
 }
 
-Lattice::Lattice(unsigned NX_, unsigned steps_, double Re_,
-                 bool useMask, const std::string &maskType,
-                 double maskSize, const std::string &outDir)
-  : NX(NX_), NY(NX_), steps(steps_), Re(Re_),
-    outDir_(outDir), useMask_(useMask),
-    maskType_(maskType), maskSize_(maskSize),
+Lattice::Lattice()
 {
-    const unsigned int NY = NX_;
+    /*  TO SET MANUALLY  */
+    // Hard coded variables
+    const unsigned int NX = 800;
+    const unsigned int NY = 200;
+    const double Re = 100;
+    maxSteps = 6000;
     ITERATIONS_PER_FRAME = 25;
     ITERATIONS_PER_PROGRESS_UPDATE = 10;
     boundary_velocity.resize(2);
@@ -104,57 +104,167 @@ Lattice::Lattice(unsigned NX_, unsigned steps_, double Re_,
     // Initialize node and obstacles matrices
     node_matrix = Matrix<Node> ({NX,NY});
     obstacles = Matrix<bool> ({NX,NY});
-    #pragma omp parallel
-    {
-    #pragma omp parallel for collapse(2)
+
     for (int i=0; i<NX; i++)
         for (int j=0; j<NY; j++)
         {   
             obstacles.set({i,j}, false);
         }
     
-    // CREATE MASK
-    // Circular
-    //size = create_circular_mask(30, 50, 150, obstacles);
+    std::ofstream param_file("parameters.txt", std::ios::trunc);    
+    if (param_file.is_open()) {
+        param_file << "# ---- LBM Simulation Parameters ----\n\n";
+        param_file << "# Domain Size\n";
+        param_file << "NX = " << NX << "\n";
+        param_file << "NY = " << NY << "\n\n";
 
-    // Step
-    /*for (int i=0;i<35;i++){
-        size = create_rectangular_mask (1,9+i,1+i,0,obstacles);
-        create_rectangular_mask(1,9+i,1+i, 99-9-i, obstacles);
+        param_file << "# Physical Parameters\n";
+        param_file << "Re = " << Re << "\n";
+        param_file << "boundary_velocity:\n";
+        param_file << "  Vx = " << boundary_velocity.at(0) << "\n";
+        param_file << "  Vy = " << boundary_velocity.at(1) << "\n\n";
+
+        param_file << "# Time-Stepping\n";
+        param_file << "maxSteps = " << maxSteps << "\n";
+        param_file << "ITERATIONS_PER_FRAME = " << ITERATIONS_PER_FRAME << "\n";
+        param_file << "ITERATIONS_PER_PROGRESS_UPDATE = " << ITERATIONS_PER_PROGRESS_UPDATE << "\n\n";
+
+        param_file << "# Derived Parameters\n";
+        param_file << "nu (kinematic viscosity) = " << nu << "\n";
+        param_file << "tau (relaxation time) = " << tau << "\n";
+        param_file << "omega_P = " << omega_P << "\n";
+        param_file << "lambda_trt = " << lambda_trt << "\n";
+        param_file << "tau_minus = " << tau_minus << "\n";
+        param_file << "omega_M = " << omega_M << "\n\n";
+
+        param_file << "# Sigma for force calculation\n";
+        param_file << "sigma = " << sigma << "\n\n";
+
+        param_file << "# Output files:\n";
+        param_file << "vel_data.txt (velocity field)\n";
+        param_file << "lift_drag.txt (aerodynamic forces)\n";
+
+        param_file << "# Obstacles:\n";
+    } 
+    else {
+        std::cerr << "Could not open/create 'parameters.txt'\n";
     }
-    for (int i=0;i<37;i++){
-        size = create_rectangular_mask (1,9+i,70+i,0,obstacles);
-        create_rectangular_mask(1,9+i,70+i, 99-9-i, obstacles);
-    }*/
-    // NACA 00xx Airfoil
-    create_airfoil_mask( 100, 100, obstacles );
+
+    std::string user_input;
+    size = 1; // Default in case no mask is added
+    
+    while (true) {
+        std::cout << "\nDo you want to add an obstacle? (y/n): ";
+        std::cin >> user_input;
+
+        if (user_input == "n" || user_input == "N") {
+            break;
+        }
+
+        std::string mask_type;
+        std::cout << "Which type of obstacle? (circle / rect / airfoil): ";
+        std::cin >> mask_type;
+
+        if (mask_type == "circle") {
+            int radius, x_center, y_center;
+            std::cout << "Enter radius: ";
+            std::cin >> radius;
+            std::cout << "Enter center x-coordinate: ";
+            std::cin >> x_center;
+            std::cout << "Enter center y-coordinate: ";
+            std::cin >> y_center;
+            size = create_circular_mask(radius, x_center, y_center, obstacles);
+            object_count++;
+
+            param_file << "  - type: circle\n";
+            param_file << "    radius: " << radius << "\n";
+            param_file << "    center_x: " << x_center << "\n";
+            param_file << "    center_y: " << y_center << "\n";
+            param_file << "\n";
+        }
+        else if (mask_type == "rect") {
+            double rot;
+            int width, height, x_pos, y_pos;
+            std::cout << "Enter width: ";
+            std::cin >> width;
+            std::cout << "Enter height: ";
+            std::cin >> height;
+            std::cout << "Enter bottom-left x-coordinate: ";
+            std::cin >> x_pos;
+            std::cout << "Enter bottom-left y-coordinate: ";
+            std::cin >> y_pos;
+            std::cout << "Enter rotation [deg] (default 0.0°): ";
+            std::cin >> rot;
+            size = create_rectangular_mask(width, height, x_pos, y_pos, obstacles, rot);
+            object_count++;
+
+            param_file << "  - type: rect\n";
+            param_file << "    width: " << width << "\n";
+            param_file << "    height: " << height << "\n";
+            param_file << "    x_pos: " << x_pos << "\n";
+            param_file << "    y_pos: " << y_pos << "\n";
+            param_file << "    rotation_deg: " << rot << "\n\n";
+        }
+        else if (mask_type == "airfoil") {
+            int x_attack, y_attack, chord_length;
+            double t;
+            std::cout << "Enter x attack-coordinate of the airfoil: ";
+            std::cin >> x_attack;
+            std::cout << "Enter y attack-coordinate of the airfoil: ";
+            std::cin >> y_attack;
+            std::cout << "Enter chord length: ";
+            std::cin >> chord_length;
+            std::cout << "Enter profile Thickness (chord fraction, i.e. 0.12): ";
+            std::cin >> t;
+            size = create_airfoil_mask(chord_length, x_attack, y_attack, t, obstacles);
+            object_count++;
+
+            param_file << "  - type: airfoil\n";
+            param_file << "    x_attack: " << x_attack << "\n";
+            param_file << "    y_attack: " << y_attack << "\n";
+            param_file << "    chord_length: " << chord_length << "\n";
+            param_file << "    thickness: " << t << "\n\n";
+        }
+        else {
+            std::cerr << "Unrecognized mask type. Please enter one of: circle, rect, airfoil." << std::endl;
+        }
+    }
+    std::cout << "\nParameters saved in 'parameters.txt'" << std::endl;
+    param_file.close();
 
     std::vector<int> boundary;
     bool isObstacle;
-    #pragma omp parallel for collapse(2)
-    for (int i=0; i<NX; i++)
-        for (int j=0; j<NY; j++)
-        {
-            isObstacle = obstacles.getCopy(i,j);
-            boundary = evaluateBoundary( {i,j} , obstacles);
-            Node node(boundary, isObstacle, {i,j});
-            node_matrix.set( {i,j}, node );
-            node_matrix(i,j).initializeEquilibrium();
-            node_matrix(i,j).updateMacroscopic();
-        }
+    #pragma omp parallel
+    {
+        #pragma omp for collapse(2)
+        for (int i=0; i<NX; i++)
+            for (int j=0; j<NY; j++)
+            {
+                #pragma omp critical
+                {
+                isObstacle = obstacles.getCopy(i,j);
+                boundary = evaluateBoundary( {i,j} , obstacles);
+                Node node(boundary, isObstacle, {i,j});
+                node_matrix.set( {i,j}, node );
+                node_matrix(i,j).initializeEquilibrium();
+                }
+                node_matrix(i,j).updateMacroscopic();
+            }
     }
     // Create the output file for velocity
-    std::ofstream file_velocity("vel_data.txt");
+    std::ofstream file_velocity("vel_data.txt",std::ios::trunc);
     if (!file_velocity.is_open()) {
         std::cerr << "could not opene/create 'vel_data.txt'.\n";
         return;
     }
     file_velocity << NX << "\n" << NY << "\n";
-    std::ofstream file_lift_drag("lift_drag.txt");
-    if (!file_lift_drag.is_open()) {
-        std::cerr << "could not opene/create 'lift_drag.txt'.\n";
-        return;
+
+    std::ofstream file_lift_drag("lift_drag.txt", std::ios::trunc);
+        if (!file_lift_drag.is_open()) {
+            std::cerr << "could not opene/create 'lift_drag.txt'.\n";
+            return;
     }
+
 }
 
 void Lattice::simulate()
@@ -169,31 +279,33 @@ void Lattice::simulate()
         const double Vx = boundary_velocity.at(0)*(1.0 - std::exp(-static_cast<double>(currentStep*currentStep)/t1));
         const double Vy = boundary_velocity.at(1)*(1.0 - std::exp(-static_cast<double>(currentStep*currentStep)/t1));
         double Cd = 0.0, Cl = 0.0;
-        #pragma omp parallel
+
+        #pragma omp parallel num_threads(64)
         {
-        #pragma omp for collapse(2)
+            #pragma omp for collapse(2)
             for( int i=0; i<node_matrix.shape().at(0); i++)
                 for (int j=0; j<node_matrix.shape().at(1); j++)
             {
-                node_matrix(i,j).applyInletBoundary(*this, {Vx,Vy});
-                node_matrix(i,j).applyZouHeBoundary(*this);
-                node_matrix(i,j).updateMacroscopic();
-                node_matrix(i,j).equilibriumCollision(omega_P, halfOmegaSum, halfOmegaSub);
-                node_matrix(i,j).bounceBack();
+                    node_matrix(i,j).applyInletBoundary(*this, {Vx,Vy});
+                    node_matrix(i,j).applyZouHeBoundary(*this);
+                    node_matrix(i,j).updateMacroscopic();
+                    node_matrix(i,j).equilibriumCollision(omega_P, halfOmegaSum, halfOmegaSub);
+                    node_matrix(i,j).bounceBack();
             }
 
-        // Streaming
-        #pragma omp parallel for collapse(2)
-        for( int i=0; i<node_matrix.shape().at(0); i++)
-            for (int j=0; j<node_matrix.shape().at(1); j++)
-                node_matrix(i,j).streaming(*this);
-
-        #pragma omp parallel for collapse(2)
-        for( int i=0; i<node_matrix.shape().at(0); i++)
-            for (int j=0; j<node_matrix.shape().at(1); j++)
-                node_matrix(i,j).computeDragAndLift(Cd, Cl, 1.0, size , Vx);
+            // Streaming
+            #pragma omp for collapse(2)
+            for( int i=0; i<node_matrix.shape().at(0); i++)
+                for (int j=0; j<node_matrix.shape().at(1); j++)
+                    node_matrix(i,j).streaming(*this);
         }
 
+        if (object_count == 1)
+        {
+            for( int i=0; i<node_matrix.shape().at(0); i++)
+                for (int j=0; j<node_matrix.shape().at(1); j++)
+                    node_matrix(i,j).computeDragAndLift(Cd, Cl, 1.0, size , Vx);
+        }
         std::ofstream file_velocity("vel_data.txt", std::ios::app);
         std::ofstream file_lift_drag("lift_drag.txt", std::ios::app);
 
@@ -212,7 +324,8 @@ void Lattice::simulate()
                     }
 
                     file_velocity << v << "\n";
-                    file_lift_drag << Cl << " " << Cd << "\n";
+                    if (object_count==1)
+                        file_lift_drag << Cl << " " << Cd << "\n";
                 }
             }
         }
@@ -230,12 +343,12 @@ void Lattice::simulate()
                 int remainingTime = static_cast<int>(estimatedTotalTime - elapsedTime);
                 
                 progress *= 100;
-                std::cout << "\rProgress: " << std::fixed << std::setprecision(2) << progress << "% completed "
+                std::cout << "\rProgress: " << std::fixed << std::setprecision(2) << progress << "% "<<"completed "
                           << "| Elapsed Time: " << elapsedTime << "s, "
                           << "Remaining Time (estimated): " << remainingTime << "s"
                           << std::flush;
             } else {
-                std::cout << "\rProgress: " << std::fixed << std::setprecision(2) << progress * 100 << "% completed "
+                std::cout << "\rProgress: " << std::fixed << std::setprecision(2) << progress * 100 << "% "<<"completed "
                           << "| Elapsed Time: " << elapsedTime << "s, "
                           << "Remaining Time (estimated): calculating..."
                           << std::flush;
@@ -243,5 +356,6 @@ void Lattice::simulate()
         }
         currentStep += 1;
     }
-    // std::cout << "\a" << std::flush; 
+    std::cout << std::endl;
 }
+

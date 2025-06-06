@@ -4,15 +4,15 @@
 #include "Node.hpp"
 #include "Auxiliary.cpp"
 #include <cmath>
+#include <omp.h>
 
 class Lattice
 {
     public:
-        Lattice(unsigned NX, unsigned steps, double Re,
-        bool useMask, const std::string &maskType,
-        double maskSize, const std::string &outDir);
+        Lattice();
         void simulate();
         Matrix<Node> node_matrix;
+        unsigned int object_count = 0;
 
     private:
         int sigma;
@@ -24,11 +24,6 @@ class Lattice
         int ITERATIONS_PER_FRAME;
         int ITERATIONS_PER_PROGRESS_UPDATE;
 
-        std::string outDir_;    
-        bool        useMask_;   
-        std::string maskType_;  
-        double      maskSize_;  
 };
-
 
 #endif

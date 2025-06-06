@@ -10,7 +10,7 @@ Algorithm (choose one):
   --2dLbm                     Run 2-D LBM solver
 
 Common options:
-  -m,  --mesh NX,NY,NZ              Mesh dimension (single value for cubic mesh)
+  -m,  --mesh NX,NY,NZ        Mesh dimension (single value for cubic mesh)
   -s,  --steps N              Number of time steps to simulate
   -r,  --re RE                Reynolds number
   -d,  --dir PATH             Output directory (default: ./output)

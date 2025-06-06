@@ -121,16 +121,3 @@ public:
 };
 
 #endif // AUXILIARY_HPP
-
-/*
-EXAMPLE 
-
-Matrix<double> mat({100, 50});  // 2D Matrix
-
-mat(0, 0) = 1.0;
-double x = mat(10, 20);
-
-Matrix<double> cube({10, 10, 10});
-cube(1, 2, 3) = 5.5;
-
-*/

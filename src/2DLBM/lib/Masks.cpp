@@ -2,40 +2,33 @@
 #include "Node.hpp"
 #include <cmath>
 #include <iostream>
+#include <cmath>
 
 /* FILE WITH FUNCTION TO CREATE VARIOUS TYPES OF MASKS   */
 /* EVERY MASK WILL GENERATE AN OBJECT IN THE SIMULATION  */
 
-double naca_airfoil( double x, double chord )
+double naca_airfoil( double x, double chord, double t )
 {
-    const double t = 0.15; // profile thickness (expressed as chord%)
     return (5*t*chord) * (0.2969*sqrt(x/chord) - 0.1260*x/chord - 0.3516*x*x/chord/chord + 
             0.2843 *x*x*x/chord/chord/chord - 0.1016*x*x*x*x/chord/chord/chord/chord);
 }
 
-double create_airfoil_mask( double chord, double x, Matrix<bool>& obstacles){
-
+double create_airfoil_mask(double chord, double x_attack, double y_attack, double t, Matrix<bool>& obstacles) {
     const unsigned int NX = obstacles.shape().at(0);
     const unsigned int NY = obstacles.shape().at(1);
 
     for (int i = 0; i < NX; i++) {
         for (int j = 0; j < NY; j++) {
-            //check if position is well placed
-            if (i >= x && i<(x+chord) ) {
-                // if so evaluate airfoil shape
-                double y_airfoil = abs(naca_airfoil((i-x), chord));
-                // check if (i, j) is outside or belongs to the airfoil
-                if (j <= NY/2+y_airfoil && j>=NY/2-y_airfoil) {
-                    // if belongs
-                    obstacles.set({i,j}, true);
+            if (i >= x_attack && i <= (x_attack + chord)) {
+                double y_airfoil = std::abs(naca_airfoil((i - x_attack), chord, t));
+                if (j <= y_attack + y_airfoil && j >= y_attack - y_airfoil) {
+                    obstacles.set({i, j}, true);
                 }
             }
         }
     }
     return chord;
 }
-
-#include <cmath> // for cos, sin, M_PI
 
 double create_rectangular_mask(
     const unsigned int b, const unsigned int h, 
