@@ -1,4 +1,7 @@
 #include "LDRIVEN.hpp"
+#ifdef USE_OPENMP
+  #include <omp.h>
+#endif
 
 LDRIVEN::LDRIVEN(unsigned int nx, unsigned int ny, double u_lid, double Re) : NX(nx), NY(ny), u_lid(u_lid), Re(Re) {
     dx = 1.0;         // Spatial step
@@ -83,8 +86,8 @@ void LDRIVEN::compute() {
             velocity_2(i,j,1) = 0; // Initialize updated velocity y-component
 
             for (int k = 0; k < Q; k++) {
-                int ip = i - direction(k,0); // Node from which the contribution comes
-                int jp = j - direction(k,1);
+                int ip = (i - direction(k,0) + NX) % NX; // Node from which the contribution comes
+                int jp = (j - direction(k,1) + NY) % NY;
 
                 // Compute collision step
                 field_2(i,j,k) = field(ip,jp,k) +(feq(k, ip, jp) - field(ip,jp,k)) / tau_f; // Collision

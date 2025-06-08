@@ -1,48 +1,40 @@
-#include "Lattice.hpp"
+#include "lib/Lattice.hpp"
+#include "lib/LDRIVEN.hpp"
 #include <iostream>
 #include <string>
 #include <filesystem>
+
+unsigned int nx, ny;
 
 int main(int argc, char* argv[]){
 
     if (argc < 4 || argc > 7) {
         std::cerr << "Usage: " << argv[0]
-                  << " NX Nsteps Re [maskType maskSize] [outputDir]\n";
+                  << " <mesh_size> <time_steps> <reynolds> [output_dir]\n";
         return EXIT_FAILURE;
     }
 
-    unsigned int mesh = std::stoul(argv[1]);              
-    unsigned int Steps = std::stoul(argv[2]);              
-    double Re = std::stod(argv[3]);               
-   
-    bool        useMask   = false;                            
-    std::string maskType  = "";                             
-    double      maskSize  = 0.0;                              
-    std::string outDir    = "./output";                     
+    unsigned int mesh  = std::stoi(argv[1]);
+    int Steps = std::stoi(argv[2]);
+    double Re    = std::stod(argv[3]);
+    int ITERATIONS_PER_FRAME = std::stoi(argv[4]);
+    bool use_tunnel= false;
+    const double u_lid = 0.1;
+    nx = mesh; ny = mesh;                   
 
-    if (argc == 5) {
-       
-        outDir = argv[4];
-    } else if (argc == 6) {
-        
-        useMask  = true;
-        maskType = argv[4];
-        maskSize = std::stod(argv[5]);
-    } else if (argc == 7) {
-        
-        useMask  = true;
-        maskType = argv[4];
-        maskSize = std::stod(argv[5]);
-        outDir   = argv[6];
+    if(argc == 6 ){
+        use_tunnel = true;
     }
 
-    // Ensure output directory exists
-    //std::filesystem::create_directories(outDir);
+    if(use_tunnel == true){
+        Lattice lattice;
+        lattice.simulate();
+    }else{
+         LDRIVEN cavity(nx,ny,u_lid,Re);
+         cavity.evolution(Steps);
+    }
     
-    Lattice lattice(mesh, Steps, Re,
-                    useMask, maskType, maskSize,
-                    outDir);
-    lattice.simulate();
+    
 
     return 0;
 }

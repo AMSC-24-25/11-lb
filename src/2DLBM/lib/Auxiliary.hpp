@@ -97,72 +97,8 @@ public:
     }
 };
 
-std::vector <int> evaluateBoundary(const std::vector<int>& indices, const Matrix<bool> &obstacleMatrix)
-{
-    const int &col = indices.at(0);
-    const int &row = indices.at(1);
-    const int &NX = obstacleMatrix.shape().at(0);
-    const int &NY = obstacleMatrix.shape().at(1);
-    std::vector<int> boundary_here(4);
+std::vector <int> evaluateBoundary(const std::vector<int>& indices, const Matrix<bool> &obstacleMatrix);
 
-    // Evaluate boundary array, considering near objects
-    // Horizontal 
-    if( col>0 && obstacleMatrix(col-1,row))
-    {
-        boundary_here.at(0) = -1;
-    }
-    else if(col<(NX-1) && obstacleMatrix(col+1,row)) 
-    {
-        boundary_here.at(0) = 1;
-    }
-    else 
-    {
-        boundary_here.at(0) = 0;
-    }
-
-    // Vertical 
-    if (row>0 && obstacleMatrix(col,row-1))
-    {
-        boundary_here.at(1) = -1;
-    }
-    else if (row<(NY-1) && obstacleMatrix(col,row+1))
-    {
-        boundary_here.at(1) = 1;
-    }
-    else 
-    {
-        boundary_here.at(1) = 0;
-    }
-
-    // First Diag
-    if (col>0 && row>0 && obstacleMatrix(col-1,row-1))
-    {
-        boundary_here.at(2) = -1;
-    }
-    else if (col<(NX-1) && row<(NY-1) && obstacleMatrix(col+1, row+1))
-    {
-        boundary_here.at(2) = 1;
-    }
-    else 
-    {
-        boundary_here.at(2) = 0;
-    }
-
-    // Second Diag
-    if (col>0 && row<(NY-1) && obstacleMatrix(col-1,row+1))
-    {
-        boundary_here.at(3) = 1;
-    }
-    else if (col<(NX-1) && row>0 && obstacleMatrix(col+1, row-1))
-    {
-        boundary_here.at(3) = -1;
-    }
-    else 
-    {
-        boundary_here.at(3) = 0;
-    }  
-    return boundary_here;
-}
 
 #endif // AUXILIARY_HPP
 

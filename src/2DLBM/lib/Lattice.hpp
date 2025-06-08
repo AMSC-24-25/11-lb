@@ -2,9 +2,9 @@
 #define LATTICE_HPP
 
 #include "Node.hpp"
-#include "Auxiliary.cpp"
+#include "Auxiliary.hpp"
 #include <cmath>
-#include <omp.h>
+
 
 class Lattice
 {

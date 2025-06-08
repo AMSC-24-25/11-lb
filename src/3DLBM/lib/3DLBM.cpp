@@ -1,4 +1,7 @@
 #include "3DLBM.hpp"
+#ifdef USE_OPENMP
+  #include <omp.h>
+#endif
 
 
 TDLBM::TDLBM(unsigned int nx_, unsigned int ny_, unsigned int nz_, double U_lid_, double Re_)

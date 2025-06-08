@@ -1,10 +1,13 @@
 #include "Lattice.hpp"
-#include "Masks.cpp"
+#include "Masks.hpp"
 #include <iostream>
 #include <fstream>
 #include <chrono>
 #include <iomanip> 
-#include <omp.h>
+#include <cmath>
+#ifdef USE_OPENMP
+  #include <omp.h>
+#endif
 
 std::vector <int> evaluateBoundary(const std::vector<int>& indices, const Matrix<bool> &obstacleMatrix)
 {

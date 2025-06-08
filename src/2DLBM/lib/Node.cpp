@@ -1,7 +1,9 @@
 #include "Node.hpp"
 #include "Lattice.hpp"
-#include "Auxiliary.cpp"
+#include "Auxiliary.hpp"
 #include <limits>
+#include <cmath>
+#include <iostream>
 
 Node::Node(const std::vector<int>& boundary_, const bool obs_, const std::vector<int>& position_)
             : boundary(boundary_), obstacle(obs_), position(position_)
