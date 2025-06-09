@@ -76,13 +76,10 @@ std::vector <int> evaluateBoundary(const std::vector<int>& indices, const Matrix
     return boundary_here;
 }
 
-Lattice::Lattice()
+Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re): NX(nx), NY(ny), u_lid(u_lid), Re(Re)
 {
     /*  TO SET MANUALLY  */
     // Hard coded variables
-    const unsigned int NX = 800;
-    const unsigned int NY = 200;
-    const double Re = 100;
     maxSteps = 6000;
     ITERATIONS_PER_FRAME = 25;
     ITERATIONS_PER_PROGRESS_UPDATE = 10;

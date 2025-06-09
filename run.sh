@@ -29,6 +29,7 @@ EOF
 # Defaults
 ALGORITHM=""
 MESH_SIZE=""
+MESH_SIZE_Y=""
 TIME_STEPS=""
 REYNOLDS_NUMBER=""
 ITER_PER_FRAME="10"
@@ -46,6 +47,7 @@ while [[ $# -gt 0 ]]; do
     --3dLbm)   ALGORITHM="3dLbm"; shift ;;
     --2dLbm)   ALGORITHM="2dLbm"; shift ;;
     -tunnel) USE_TUNNEL=true; shift 1;;
+    -my) MESH_SIZE_Y="$2"; shift 2;;
     -m|--mesh) MESH_SIZE="$2"; shift 2 ;;
     -s|--steps) TIME_STEPS="$2"; shift 2 ;;
     -r|--re|--reynolds) REYNOLDS_NUMBER="$2"; shift 2 ;;
@@ -57,6 +59,8 @@ while [[ $# -gt 0 ]]; do
     *) echo "Unknown option: $1"; print_help; exit 1 ;;
   esac
 done
+
+MESH_SIZE_Y="${MESH_SIZE_Y:-$MESH_SIZE}"
 
 # Validate common
 if [[ -z $ALGORITHM || -z $MESH_SIZE || -z $TIME_STEPS || -z $REYNOLDS_NUMBER ]]; then
@@ -94,9 +98,9 @@ if [[ $ALGORITHM == "3dLbm" ]]; then
 elif [[ $ALGORITHM == "2dLbm" ]]; then
 
   if [[ $USE_TUNNEL == true ]]; then
-    exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" "$USE_TUNNEL"
+    exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$MESH_SIZE_Y" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" "$USE_TUNNEL"
   else
-    exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" 
+    exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$MESH_SIZE_Y" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" 
   fi  
 else
   echo "Unsupported algorithm: $ALGORITHM" >&2

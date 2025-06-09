@@ -9,7 +9,7 @@
 class Lattice
 {
     public:
-        Lattice();
+        Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re);
         void simulate();
         Matrix<Node> node_matrix;
         unsigned int object_count = 0;
@@ -23,6 +23,10 @@ class Lattice
         int maxSteps;
         int ITERATIONS_PER_FRAME;
         int ITERATIONS_PER_PROGRESS_UPDATE;
+        int NX;
+        int NY;
+        double Re;
+        double u_lid;
 
 };
 
