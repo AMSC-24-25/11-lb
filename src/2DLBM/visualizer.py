@@ -2,10 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import imageio
 import sys
+import os
 
 # input file name
-input_file = 'vel_data.txt'
-
+input_file = os.path.abspath(os.path.join(__file__, '..', '..', '..', 'vel_data.txt'))
 
 iteration_per_frame = 25
 

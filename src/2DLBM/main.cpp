@@ -4,7 +4,9 @@
 #include <string>
 #include <filesystem>
 
-
+#ifdef USE_OPENMP
+  #include <omp.h>
+#endif
 
 int main(int argc, char* argv[]){
 
@@ -13,6 +15,21 @@ int main(int argc, char* argv[]){
                   << " <mesh_size> <time_steps> <reynolds> [output_dir]\n";
         return EXIT_FAILURE;
     }
+
+    #ifdef USE_OPENMP
+    #pragma omp parallel
+    {
+        int n_threads = omp_get_num_threads();
+
+        #pragma omp single
+        std::cout << ">>> OpenMP active with " 
+                  << n_threads 
+                  << " thread" <<"\n";
+
+    }
+    #else
+    std::cout << "OpenMP do not work";
+    #endif
 
     unsigned int nx  = std::stoi(argv[1]);
     unsigned int ny  = std::stoi(argv[2]);
