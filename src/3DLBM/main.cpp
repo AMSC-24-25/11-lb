@@ -21,7 +21,7 @@ const double u_lid = 0.1;
 int nx, ny, nz;
 
 int main(int argc, char* argv[]) {
-    if (argc < 4 || argc > 5) {
+    if (argc !=6) {
         std::cerr << "Usage: " << argv[0]
                   << " <mesh_size> <time_steps> <reynolds> [output_dir]\n";
         return EXIT_FAILURE;
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
     int mesh  = std::stoi(argv[1]);
     int Steps = std::stoi(argv[2]);
     int Re    = std::stoi(argv[3]);
-    int ITERATIONS_PER_FRAME;
+    int ITERATIONS_PER_FRAME=std::stoi(argv[5]);
     nx = mesh; ny = mesh; nz = mesh;
 
     #ifdef USE_OPENMP
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 
     }
     #else
-    std::cout << "OpenMP do not work";
+    std::cout << "OpenMP not active\n";
     #endif
 
     TDLBM Cavity(nx, ny, nz, u_lid, Re);
@@ -58,18 +58,13 @@ int main(int argc, char* argv[]) {
 
     std::vector<std::pair<int, std::string>> frames;
     std::string outputDir;
-    std::string ArgDir;
+    std::string ArgDir=argv[4];
 
-    if (argc == 6) {
-        ArgDir = argv[4];
-        ITERATIONS_PER_FRAME = std::stoi(argv[5]);
+   
+       
         outputDir = ArgDir + "/output_" + std::to_string(Re) + "_"
                     + std::to_string(nx) + "x" + std::to_string(ny) + "x" + std::to_string(nz);
-    } else {
-        ITERATIONS_PER_FRAME = std::stoi(argv[4]);
-        outputDir = "output_" + std::to_string(Re) + "_"
-                    + std::to_string(nx) + "x" + std::to_string(ny) + "x" + std::to_string(nz);
-    }
+    
 
     try {
         fs::create_directory(outputDir);

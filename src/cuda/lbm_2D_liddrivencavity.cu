@@ -6,19 +6,17 @@
 #include <chrono>
 
 // Definition of simulation parameters
-constexpr int NX = 400;
-constexpr int NY = 400;
 constexpr int Q = 9;      // Number of directions (D2Q9)
 constexpr int D = 2;      // Spatial dimension
 
 // Inline functions to translate indices to linear indices
-__device__ inline int idx_density(int i, int j) {
+__device__ inline int idx_density(int i, int j, int NY) {
     return i * NY + j;
 }
-__device__ inline int idx_field(int i, int j, int k) {
+__device__ inline int idx_field(int i, int j, int k, int NY) {
     return (i * NY + j) * Q + k;
 }
-__device__ inline int idx_velocity(int i, int j, int d) {
+__device__ inline int idx_velocity(int i, int j, int d,int NY) {
     return (i * NY + j) * D + d;
 }
 
@@ -40,7 +38,7 @@ __global__ void kernel_compute(double* f, double* f2, double* rho, double* rho2,
 
     // Check if the thread is inside the domain (skipping borders)
     if (i > 0 && i < nx - 1 && j > 0 && j < ny - 1) {
-        int index = idx_density(i, j);
+        int index = idx_density(i, j, ny);
         double local_rho = 0.0;
         double local_ux = 0.0;
         double local_uy = 0.0;
@@ -55,13 +53,13 @@ __global__ void kernel_compute(double* f, double* f2, double* rho, double* rho2,
             int jp = j - cy[k];
 
             // Compute the indices for velocity, density, and distribution field in the source node
-            int idx_comp = idx_density(ip, jp);
-            int idx_field_comp = idx_field(ip, jp, k);
+            int idx_comp = idx_density(ip, jp,ny);
+            int idx_field_comp = idx_field(ip, jp, k,ny);
 
             // Load density and velocity values from the source node
             double rho_comp = rho[idx_comp];
-            double u_x_comp = u[idx_velocity(ip, jp, 0)];
-            double u_y_comp = u[idx_velocity(ip, jp, 1)];
+            double u_x_comp = u[idx_velocity(ip, jp, 0,ny)];
+            double u_y_comp = u[idx_velocity(ip, jp, 1,ny)];
 
             // Compute equilibrium value (feq)
             double feq = feq_func(k, rho_comp, u_x_comp, u_y_comp, w);
@@ -70,7 +68,7 @@ __global__ void kernel_compute(double* f, double* f2, double* rho, double* rho2,
             double new_val = f[idx_field_comp] + (feq - f[idx_field_comp]) / tau_f;
 
             // Update distribution field for the current cell
-            int idx_field_current = idx_field(i, j, k);
+            int idx_field_current = idx_field(i, j, k,ny);
             f2[idx_field_current] = new_val;
 
             // Accumulate contributions to density and velocity
@@ -81,8 +79,8 @@ __global__ void kernel_compute(double* f, double* f2, double* rho, double* rho2,
 
         // Update density and velocity (normalized)
         rho2[index] = local_rho;
-        u2[idx_velocity(i, j, 0)] = local_ux / local_rho;
-        u2[idx_velocity(i, j, 1)] = local_uy / local_rho;
+        u2[idx_velocity(i, j, 0,ny)] = local_ux / local_rho;
+        u2[idx_velocity(i, j, 1,ny)] = local_uy / local_rho;
     }
 }
 
@@ -189,39 +187,49 @@ __global__ void kernel_init(double* rho, double* rho2,
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < nx && j < ny) {
-        int idx = idx_density(i, j);
+        int idx = idx_density(i, j,ny);
 
         // Initialize density and velocity fields
         rho[idx] = rho0;
         rho2[idx] = rho0;
 
-        u[idx_velocity(i, j, 0)] = 0.0;
-        u[idx_velocity(i, j, 1)] = 0.0;
+        u[idx_velocity(i, j, 0,ny)] = 0.0;
+        u[idx_velocity(i, j, 1,ny)] = 0.0;
 
-        u2[idx_velocity(i, j, 0)] = 0.0;
-        u2[idx_velocity(i, j, 1)] = 0.0;
+        u2[idx_velocity(i, j, 0,ny)] = 0.0;
+        u2[idx_velocity(i, j, 1,ny)] = 0.0;
 
         // Initialize distribution function with equilibrium values
         for (int k = 0; k < Q; k++) {
             double feq = feq_func(k, rho0, 0.0, 0.0, w);
-            f[idx_field(i, j, k)] = feq;
-            F[idx_field(i, j, k)] = feq;
+            f[idx_field(i, j, k,ny)] = feq;
+            F[idx_field(i, j, k,ny)] = feq;
         }
     }
 }
 
 
 constexpr int ITERATIONS_PER_PROGRESS_UPDATE = 100;
-constexpr int ITERATIONS_PER_FRAME = 200;
-constexpr int MAX_STEPS = 40000;
-
 #include <chrono>
 #include <iomanip> 
 
-int main() {
+int main(int argc, char* argv[]) {
+
+    if (argc != 7) {
+        std::cerr << "Usage: " << argv[0]
+                  << " <mesh_size> <time_steps> <reynolds> [output_dir]\n";
+        return EXIT_FAILURE;
+    }
     // Simulation parameters
+    int NX = std::atoi(argv[1]);
+    int NY = std::atoi(argv[2]);
+    int MAX_STEPS = std::atoi(argv[3]);
+    double Re = std::atof(argv[4]);
+    int ITER_PER_FRAME = std::atoi(argv[5]);
+    std::string out_dir = argv[6];
     const double u_lid = 0.5;
-    const double Re = 1000.0;
+    int ITERATIONS_PER_FRAME = 200;
+    
     const double dx = 1.0;
     double Lx = NY * dx;
     double nu = u_lid * Lx / Re;
@@ -257,7 +265,7 @@ int main() {
     kernel_init << <numBlocks, threadsPerBlock >> > (d_rho, d_rho2, d_u, d_u2, d_f, d_f2, NX, NY, rho0, u_lid, d_w);
     cudaDeviceSynchronize();
 
-    std::ofstream file_velocity("vel_data_cuda.txt");
+    std::ofstream file_velocity(out_dir+"vel_data_cuda.txt");
     if (!file_velocity.is_open()) {
         std::cerr << "Error opening the file for velocity.\n";
         return 1;
