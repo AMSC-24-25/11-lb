@@ -77,7 +77,7 @@ std::vector <int> evaluateBoundary(const std::vector<int>& indices, const Matrix
     return boundary_here;
 }
 
-Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re, std::string outdir): NX(nx), NY(ny), u_lid(u_lid), Re(Re)
+Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re, std::string outdir): NX(nx), NY(ny), u_lid(u_lid), Re(Re), outdir(outdir)
 {
     /*  TO SET MANUALLY  */
     // Hard coded variables
@@ -124,11 +124,6 @@ Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re, std:
         param_file << "  Vx = " << boundary_velocity.at(0) << "\n";
         param_file << "  Vy = " << boundary_velocity.at(1) << "\n\n";
 
-        param_file << "# Time-Stepping\n";
-        param_file << "maxSteps = " << maxSteps << "\n";
-        param_file << "ITERATIONS_PER_FRAME = " << ITERATIONS_PER_FRAME << "\n";
-        param_file << "ITERATIONS_PER_PROGRESS_UPDATE = " << ITERATIONS_PER_PROGRESS_UPDATE << "\n\n";
-
         param_file << "# Derived Parameters\n";
         param_file << "nu (kinematic viscosity) = " << nu << "\n";
         param_file << "tau (relaxation time) = " << tau << "\n";
@@ -142,9 +137,9 @@ Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re, std:
 
         param_file << "# Output files:\n";
         param_file << "vel_data.txt (velocity field)\n";
-        param_file << "lift_drag.txt (aerodynamic forces)\n";
+        param_file << "lift_drag.txt (aerodynamic forces)\n\n";
 
-        param_file << "# Obstacles:\n";
+       
     } 
     else {
         std::cerr << "Could not open/create 'parameters.txt'\n";
@@ -160,7 +155,7 @@ Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re, std:
         if (user_input == "n" || user_input == "N") {
             break;
         }
-
+        param_file << "# Obstacles:\n";
         std::string mask_type;
         std::cout << "Which type of obstacle? (circle / rect / airfoil): ";
         std::cin >> mask_type;
@@ -175,7 +170,7 @@ Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re, std:
             std::cin >> y_center;
             size = create_circular_mask(radius, x_center, y_center, obstacles);
             object_count++;
-
+     
             param_file << "  - type: circle\n";
             param_file << "    radius: " << radius << "\n";
             param_file << "    center_x: " << x_center << "\n";
@@ -271,12 +266,22 @@ void Lattice::simulate(int max_steps, int iter_per_frame)
 {
     maxSteps = max_steps;
     ITERATIONS_PER_FRAME = iter_per_frame;
+
+    std::ofstream param_file(outdir+"/parameters.txt", std::ios::app);    
+    if (param_file.is_open()) {
+    param_file << "# Time-Stepping\n";
+        param_file << "maxSteps = " << maxSteps << "\n";
+        param_file << "ITERATIONS_PER_FRAME = " << ITERATIONS_PER_FRAME << "\n";
+        param_file << "ITERATIONS_PER_PROGRESS_UPDATE = " << ITERATIONS_PER_PROGRESS_UPDATE << "\n\n";
+    }    
+    param_file.close();
+
     const double t1 = 2.0*sigma*sigma;
     const double halfOmegaSum = (omega_P+omega_M)/2.0;
     const double halfOmegaSub = (omega_P-omega_M)/2.0;
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    while (currentStep<=maxSteps)
+    for(int currentStep = 0; currentStep < maxSteps; currentStep++)
     {
         const double Vx = boundary_velocity.at(0)*(1.0 - std::exp(-static_cast<double>(currentStep*currentStep)/t1));
         const double Vy = boundary_velocity.at(1)*(1.0 - std::exp(-static_cast<double>(currentStep*currentStep)/t1));
@@ -308,8 +313,8 @@ void Lattice::simulate(int max_steps, int iter_per_frame)
                 for (int j=0; j<node_matrix.shape().at(1); j++)
                     node_matrix(i,j).computeDragAndLift(Cd, Cl, 1.0, size , Vx);
         }
-        std::ofstream file_velocity("vel_data.txt", std::ios::app);
-        std::ofstream file_lift_drag("lift_drag.txt", std::ios::app);
+        std::ofstream file_velocity(outdir+"/vel_data.txt", std::ios::app);
+        std::ofstream file_lift_drag(outdir+"/lift_drag.txt", std::ios::app);
 
         //Every ITERATIONS_PER_FRAME steps, save velocity data
         if (currentStep==1 || currentStep % ITERATIONS_PER_FRAME == 0) {
@@ -356,7 +361,7 @@ void Lattice::simulate(int max_steps, int iter_per_frame)
                           << std::flush;
             }
         }
-        currentStep += 1;
+    
     }
     std::cout << std::endl;
 }

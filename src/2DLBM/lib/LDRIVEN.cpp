@@ -88,32 +88,43 @@ void LDRIVEN::simulate(unsigned int iterations,int iter_per_frame) {
         compute();      // Collision and Update macroscopic density and velocities
         apply_boundary_conditions(); // Apply boundary conditions
         if(iter % ITERATIONS_PER_FRAME == 0) {
-                for (int j = 0; j < NX; ++j) {
-                    for (int i = 0; i < NY; ++i) {
-                        double vx = get_vel(i, j, 0);
-                        double vy = get_vel(i, j, 1);
+                for (int j = 0; j < NY; ++j) {
+                    for (int i = 0; i < NX; ++i) {
+                        double vx = u[((NY)*i+j)*D + 0];
+                        double vy = u[((NY)*i+j)*D + 1];
                         double v  = std::sqrt(vx * vx + vy * vy);
                         file << v << "\n";
                     }
                 }
             }
 
-            if (iter % ITERATIONS_PER_PROGRESS_UPDATE == 0 || iter == maxSteps - 1) {
-                float progress = static_cast<float>(iter) / maxSteps;
-                auto currentTime = std::chrono::high_resolution_clock::now();
-                auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+            if(iter % ITERATIONS_PER_PROGRESS_UPDATE == 0 || iter == maxSteps - 1) {
+            float progress = (static_cast<float>(iter) / maxSteps);
+            auto currentTime = std::chrono::high_resolution_clock::now();
+            auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
 
+            std::cout << "\r" << std::string(100, ' ') << "\r"; // clean row
+            
+            if (progress > 0.001f) { // evita divisioni assurde
                 double estimatedTotalTime = elapsedTime / progress;
-                int remainingTime = estimatedTotalTime - elapsedTime;
-
+                int remainingTime = static_cast<int>(estimatedTotalTime - elapsedTime);
+                
                 progress *= 100;
-                std::cout << "\rProgress: " << std::fixed << std::setprecision(2) << progress << "% completed "
+                std::cout << "\rProgress: " << std::fixed << std::setprecision(2) << progress << "% "<<"completed "
                           << "| Elapsed Time: " << elapsedTime << "s, "
-                          << "Remaining Time (estimated): " << static_cast<int>(remainingTime) << "s"
+                          << "Remaining Time (estimated): " << remainingTime << "s"
                           << std::flush;
-        }
+            } else {
+                std::cout << "\rProgress: " << std::fixed << std::setprecision(2) << progress * 100 << "% "<<"completed "
+                          << "| Elapsed Time: " << elapsedTime << "s, "
+                          << "Remaining Time (estimated): calculating..."
+                          << std::flush;
+            }
+        
     }
-    file.close();
+    
+}
+file.close();
     std::cout << "\nSimulation completed.\n";
 }
 

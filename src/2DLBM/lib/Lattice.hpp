@@ -20,7 +20,6 @@ class Lattice
         double omega_P, omega_M, size;
         std::vector<double> boundary_velocity;
         Matrix<bool> obstacles;
-        int currentStep = 0;
         int maxSteps;
         int ITERATIONS_PER_FRAME;
         int ITERATIONS_PER_PROGRESS_UPDATE;
@@ -28,6 +27,7 @@ class Lattice
         int NY;
         double Re;
         double u_lid;
+        std::string outdir;
 
 };
 
