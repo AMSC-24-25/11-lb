@@ -157,6 +157,10 @@ public :
     const int NX; ///< Domain size in the x-direction.
     const int NY; ///< Domain size in the y-direction.
     std::vector<std::vector<bool>> is_solid; // 1->solid, 0->fluid
+    std::string outdir;
+    int maxSteps;
+    int ITERATIONS_PER_FRAME;
+    int ITERATIONS_PER_PROGRESS_UPDATE;
 
     /**
      * @brief Constructor of the LDRIVEN class.
@@ -165,7 +169,7 @@ public :
      * @param u_lid Velocity at the top boundary.
      * @param Re Reynolds number.
      */
-    LDRIVEN(unsigned int nx, unsigned int ny, double u_lid, double Re);
+    LDRIVEN(unsigned int nx, unsigned int ny, double u_lid, double Re,std::string outdir);
     ~LDRIVEN();
 
     /**
@@ -182,7 +186,7 @@ public :
      * @brief Evolves the system for a specified number of iterations.
      * @param iterations Number of iterations.
      */
-    virtual void evolution(unsigned int iterations);
+    virtual void simulate(unsigned int iterations,int iter_per_frame);
 
     /**
      * @brief Returns the velocity at a specific location.

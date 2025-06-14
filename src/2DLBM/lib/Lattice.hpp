@@ -4,13 +4,14 @@
 #include "Node.hpp"
 #include "Auxiliary.hpp"
 #include <cmath>
+#include <string>
 
 
 class Lattice
 {
     public:
-        Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re);
-        void simulate();
+        Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re, std::string outdir);
+        void simulate(int max_steps, int iter_per_frame);
         Matrix<Node> node_matrix;
         unsigned int object_count = 0;
 

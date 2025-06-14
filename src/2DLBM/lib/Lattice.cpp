@@ -5,6 +5,7 @@
 #include <chrono>
 #include <iomanip> 
 #include <cmath>
+#include <string>
 #ifdef USE_OPENMP
   #include <omp.h>
 #endif
@@ -76,12 +77,11 @@ std::vector <int> evaluateBoundary(const std::vector<int>& indices, const Matrix
     return boundary_here;
 }
 
-Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re): NX(nx), NY(ny), u_lid(u_lid), Re(Re)
+Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re, std::string outdir): NX(nx), NY(ny), u_lid(u_lid), Re(Re)
 {
     /*  TO SET MANUALLY  */
     // Hard coded variables
-    maxSteps = 6000;
-    ITERATIONS_PER_FRAME = 25;
+
     ITERATIONS_PER_PROGRESS_UPDATE = 10;
     boundary_velocity.resize(2);
     boundary_velocity.at(0) = 0.1; // Vx
@@ -111,7 +111,7 @@ Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re): NX(
             obstacles.set({i,j}, false);
         }
     
-    std::ofstream param_file("parameters.txt", std::ios::trunc);    
+    std::ofstream param_file(outdir+"/parameters.txt", std::ios::trunc);    
     if (param_file.is_open()) {
         param_file << "# ---- LBM Simulation Parameters ----\n\n";
         param_file << "# Domain Size\n";
@@ -252,14 +252,14 @@ Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re): NX(
             }
     }
     // Create the output file for velocity
-    std::ofstream file_velocity("vel_data.txt",std::ios::trunc);
+    std::ofstream file_velocity(outdir+"/vel_data.txt",std::ios::trunc);
     if (!file_velocity.is_open()) {
         std::cerr << "could not opene/create 'vel_data.txt'.\n";
         return;
     }
     file_velocity << NX << "\n" << NY << "\n";
 
-    std::ofstream file_lift_drag("lift_drag.txt", std::ios::trunc);
+    std::ofstream file_lift_drag(outdir+"/lift_drag.txt", std::ios::trunc);
         if (!file_lift_drag.is_open()) {
             std::cerr << "could not opene/create 'lift_drag.txt'.\n";
             return;
@@ -267,8 +267,10 @@ Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re): NX(
 
 }
 
-void Lattice::simulate()
+void Lattice::simulate(int max_steps, int iter_per_frame)
 {
+    maxSteps = max_steps;
+    ITERATIONS_PER_FRAME = iter_per_frame;
     const double t1 = 2.0*sigma*sigma;
     const double halfOmegaSum = (omega_P+omega_M)/2.0;
     const double halfOmegaSub = (omega_P-omega_M)/2.0;

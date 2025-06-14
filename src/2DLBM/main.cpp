@@ -10,7 +10,7 @@
 
 int main(int argc, char* argv[]){
 
-    if (argc < 3 || argc > 8) {
+    if (argc < 3 || argc > 9) {
         std::cerr << "Usage: " << argv[0]
                   << " <mesh_size> <time_steps> <reynolds> [output_dir]\n";
         return EXIT_FAILURE;
@@ -38,18 +38,18 @@ int main(int argc, char* argv[]){
     int ITERATIONS_PER_FRAME = std::stoi(argv[5]);
     bool use_tunnel= false;
     const double u_lid = 0.1;
-                      
+    std::string ArgDir=argv[6];           
 
-    if(argc == 7 ){
+    if(argc == 8 ){
         use_tunnel = true;
     }
 
     if(use_tunnel == true){
-        Lattice lattice(nx,ny,u_lid,Re);
-        lattice.simulate();
+        Lattice lattice(nx,ny,u_lid,Re,ArgDir);
+        lattice.simulate(Steps,ITERATIONS_PER_FRAME);
     }else{
-         LDRIVEN cavity(nx,ny,u_lid,Re);
-         cavity.evolution(Steps);
+         LDRIVEN cavity(nx,ny,u_lid,Re,ArgDir);
+         cavity.simulate(Steps,ITERATIONS_PER_FRAME);
     }
     
     

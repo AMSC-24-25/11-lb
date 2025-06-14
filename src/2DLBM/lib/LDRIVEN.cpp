@@ -1,9 +1,13 @@
 #include "LDRIVEN.hpp"
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <filesystem>
 #ifdef USE_OPENMP
   #include <omp.h>
 #endif
 
-LDRIVEN::LDRIVEN(unsigned int nx, unsigned int ny, double u_lid, double Re) : NX(nx), NY(ny), u_lid(u_lid), Re(Re) {
+LDRIVEN::LDRIVEN(unsigned int nx, unsigned int ny, double u_lid, double Re,std::string outdir) : NX(nx), NY(ny), u_lid(u_lid), Re(Re), outdir(outdir) {
     dx = 1.0;         // Spatial step
     dy = 1.0;         // Spatial step
     Lx = dx * double(NY); // Domain length in y
@@ -68,11 +72,49 @@ void LDRIVEN::evolution() {
 }
 
 
-void LDRIVEN::evolution(unsigned int iterations) {
-    for(int iter = 0; iter < iterations; iter++) {
+void LDRIVEN::simulate(unsigned int iterations,int iter_per_frame) {
+    maxSteps=iterations;
+    ITERATIONS_PER_FRAME=iter_per_frame;
+    // Apertura file output
+        std::ofstream file(outdir+"/vel_data.txt");
+        if (!file.is_open()) {
+            std::cerr << "Could not open/create 'vel_data.txt'.\n";
+            return;
+        }
+        file << NX << "\n" << NY << "\n";
+
+        auto startTime = std::chrono::high_resolution_clock::now();
+    for(int iter = 0; iter < maxSteps; iter++) {
         compute();      // Collision and Update macroscopic density and velocities
         apply_boundary_conditions(); // Apply boundary conditions
+        if(iter % ITERATIONS_PER_FRAME == 0) {
+                for (int j = 0; j < NX; ++j) {
+                    for (int i = 0; i < NY; ++i) {
+                        double vx = get_vel(i, j, 0);
+                        double vy = get_vel(i, j, 1);
+                        double v  = std::sqrt(vx * vx + vy * vy);
+                        file << v << "\n";
+                    }
+                }
+            }
+
+            if (iter % ITERATIONS_PER_PROGRESS_UPDATE == 0 || iter == maxSteps - 1) {
+                float progress = static_cast<float>(iter) / maxSteps;
+                auto currentTime = std::chrono::high_resolution_clock::now();
+                auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+
+                double estimatedTotalTime = elapsedTime / progress;
+                int remainingTime = estimatedTotalTime - elapsedTime;
+
+                progress *= 100;
+                std::cout << "\rProgress: " << std::fixed << std::setprecision(2) << progress << "% completed "
+                          << "| Elapsed Time: " << elapsedTime << "s, "
+                          << "Remaining Time (estimated): " << static_cast<int>(remainingTime) << "s"
+                          << std::flush;
+        }
     }
+    file.close();
+    std::cout << "\nSimulation completed.\n";
 }
 
 
