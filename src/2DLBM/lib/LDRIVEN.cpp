@@ -78,14 +78,39 @@ void LDRIVEN::simulate(unsigned int iterations,int iter_per_frame) {
     maxSteps=iterations;
     ITERATIONS_PER_FRAME=iter_per_frame;
     // Apertura file output
-        std::ofstream file(outdir+"/vel_data.txt");
-        if (!file.is_open()) {
-            std::cerr << "Could not open/create 'vel_data.txt'.\n";
-            return;
-        }
-        file << NX << "\n" << NY << "\n";
+    std::ofstream file(outdir+"/vel_data.txt");
+    if (!file.is_open()) {
+        std::cerr << "Could not open/create 'vel_data.txt'.\n";
+        return;
+    }
+    file << NX << "\n" << NY << "\n";
 
-        auto startTime = std::chrono::high_resolution_clock::now();
+    auto startTime = std::chrono::high_resolution_clock::now();
+    
+    std::ofstream param_file(outdir+"/parameters.txt", std::ios::trunc);    
+    if (param_file.is_open()) {
+        param_file << "# ---- LBM Simulation Parameters ----\n\n";
+        param_file << "# Domain Size\n";
+        param_file << "NX = " << NX << "\n";
+        param_file << "NY = " << NY << "\n\n";
+
+        param_file << "# Physical Parameters\n";
+        param_file << "Re = " << Re << "\n";
+        param_file << "Lid velocity = " << u_lid << "\n";
+
+        param_file << "\n# Derived Parameters\n";
+        param_file << "nu (kinematic viscosity) = " << nu << "\n";
+        param_file << "tau (relaxation time) = " << tau_f << "\n";
+
+        param_file << "\n# Output files:\n";
+        param_file << "vel_data.txt (velocity field)\n";
+    } 
+    else {
+        std::cerr << "Could not open/create 'parameters.txt'\n";
+    }
+    std::cout << "\nParameters saved in 'parameters.txt'" << std::endl;
+    param_file.close();
+
     for(int iter = 0; iter <= maxSteps; iter++) {
         compute();      // Collision and Update macroscopic density and velocities
         apply_boundary_conditions(); // Apply boundary conditions
@@ -121,10 +146,8 @@ void LDRIVEN::simulate(unsigned int iterations,int iter_per_frame) {
                           << "| Elapsed Time: " << elapsedTime << "s, "
                           << "Remaining Time (estimated): calculating..."
                           << std::flush;
-            }
-        
+            }      
     }
-    
 }
 file.close();
     std::cout << "\nSimulation completed.\n";
