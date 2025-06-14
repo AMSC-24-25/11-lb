@@ -17,7 +17,7 @@ Common options:
   -d,  --dir PATH             Output directory (default: ./output)
   -omp,--Openmp               Enable OpenMP
   -h,  --help                 Show this help
-  -itf,--iters-per-frame N    Iterations per frame for output (default: 10)
+  -itf,--iters-per-frame N    Iterations per frame for output (default: 25)
 
   2D specific
    -tunnel  use the wind tunnel instead of lid driven cavity
@@ -33,7 +33,7 @@ MESH_SIZE=""
 MESH_SIZE_Y=""
 TIME_STEPS=""
 REYNOLDS_NUMBER=""
-ITER_PER_FRAME="10"
+ITER_PER_FRAME="25"
 OUTPUT_DIR="output"
 USE_OPENMP=false
 USE_TUNNEL=false
@@ -101,9 +101,9 @@ if [[ $ALGORITHM == "3dLbm" ]]; then
 elif [[ $ALGORITHM == "2dLbm" ]]; then
 
   if [[ $USE_TUNNEL == true ]]; then
-    exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$MESH_SIZE_Y" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" "$USE_TUNNEL"
+    exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$MESH_SIZE_Y" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" "$OUTPUT_DIR" "$USE_TUNNEL"
   else
-    exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$MESH_SIZE_Y" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" 
+    exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$MESH_SIZE_Y" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" "$OUTPUT_DIR"
   fi  
 
 elif [[ $ALGORITHM == "cuda" ]]; then
