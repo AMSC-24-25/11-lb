@@ -3,6 +3,8 @@
 #include <string>
 #include <fstream>
 #include <filesystem>
+#include <chrono>
+#include <iomanip>
 #ifdef USE_OPENMP
   #include <omp.h>
 #endif
@@ -84,7 +86,7 @@ void LDRIVEN::simulate(unsigned int iterations,int iter_per_frame) {
         file << NX << "\n" << NY << "\n";
 
         auto startTime = std::chrono::high_resolution_clock::now();
-    for(int iter = 0; iter < maxSteps; iter++) {
+    for(int iter = 0; iter <= maxSteps; iter++) {
         compute();      // Collision and Update macroscopic density and velocities
         apply_boundary_conditions(); // Apply boundary conditions
         if(iter % ITERATIONS_PER_FRAME == 0) {

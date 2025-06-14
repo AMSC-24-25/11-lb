@@ -56,7 +56,7 @@ if __name__ == '__main__':
     vmax = max(data)
     num_iterations = len(data) // (nx * ny)
     frames = create_frames(nx, ny, data, num_iterations, vmax)
-    save_video(frames, 'lbm_simulation.mp4')
+    save_video(frames, os.path.abspath(os.path.join(__file__, '..', '..', '..', 'output/lbm_simulation.mp4')))
 
     print("Video generated: lbm_simulation.mp4")
     print('\a')
