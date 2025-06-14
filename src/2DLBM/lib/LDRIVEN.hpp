@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <vector>
+#include <string>
 
 /**
  * @class LDRIVEN
@@ -160,7 +161,7 @@ public :
     std::string outdir;
     int maxSteps;
     int ITERATIONS_PER_FRAME;
-    int ITERATIONS_PER_PROGRESS_UPDATE;
+    int ITERATIONS_PER_PROGRESS_UPDATE=10;
 
     /**
      * @brief Constructor of the LDRIVEN class.
