@@ -1,6 +1,6 @@
-# Hands-on Group 11: Lattice Boltzmann Methods 
+# Project Group 11: Lattice Boltzmann Methods 
 ### Introduction and objectives
-This projects uses the Lattice Boltzmann Methods (LBM) to perform a 2D fluid simulation with the D2Q9 model. Specifically, the aim was to solve the 2D lid-driven cavity problem.
+This projects uses the Lattice Boltzmann Methods (LBM) to perform a 2D fluid simulation with the D2Q9 model.The aim for the hands-on was to solve the 2D lid-driven cavity problem, the project extended it to 3D Lid-Driven, 2D Wind-Tunnel-like problem and 2D Lid-Driven paralellized with CUDA.
 
 
 ### Building the Project
