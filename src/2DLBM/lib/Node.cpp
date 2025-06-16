@@ -249,63 +249,59 @@ void Node::bounceBack()
     }
 }
 
-void Node::computeDragAndLift(double &Cx, double &Cy, double rhoRef, double LRef, double URef)
+void Node::computeDragAndLift(double &D, double &L)
 {
+    float localDrag = 0;
+    float localLift = 0;
+
     if (obstacle || (boundary.at(0) == 0 && boundary.at(1) == 0 && boundary.at(2) == 0 && boundary.at(3) == 0))
         return;
 
-    double Fx = 0.0;
-    double Fy = 0.0;
-
     if (boundary.at(0) == 1)
     {
-        Fx += newF.at(1) + f.at(3);
+        localDrag += newF.at(1) + f.at(3);
     }
     else if (boundary.at(0) == -1)
     {
-        Fx -= newF.at(3) + f.at(1);
+        localDrag -= newF.at(3) + f.at(1);
     }
     if (boundary.at(1) == 1)
     {
-        Fy += newF.at(4) + f.at(2);
+        localLift += newF.at(4) + f.at(2);
     }
     else if (boundary.at(1) == -1)
     {
-        Fy -= newF.at(2) + f.at(4);
+        localLift -= newF.at(2) + f.at(4);
     }
     if (boundary.at(2) == 1)
     {
-        double t = newF.at(8) + f.at(6);
-        Fx += t;
-        Fy += t;
+        const float t = newF.at(8) + f.at(6);
+        localDrag += t;
+        localLift += t;
     }
     else if (boundary.at(2) == -1)
     {
-        double t = newF.at(6) + f.at(8);
-        Fx -= t;
-        Fy -= t;
+        const float t = newF.at(6) + f.at(8);
+        localDrag -= t;
+        localLift -= t;
     }
     if (boundary.at(3) == 1)
     {
-        double t = newF.at(7) + f.at(5);
-        Fx -= t;
-        Fy += t;
+        const float t = newF.at(7) + f.at(5);
+        localDrag -= t;
+        localLift += t;
     }
     else if (boundary.at(3) == -1)
     {
-        double t = newF.at(5) + f.at(7);
-        Fx += t;
-        Fy -= t;
+        const float t = newF.at(5) + f.at(7);
+        localDrag += t;
+        localLift -= t;
     }
 
-    // Normalize to get dimensionless drag/lift coefficients
-    double normFactor = rhoRef * LRef * URef * URef;   // Sarebbe rho*v^2*S solo che in 2D quindi la superficie è una lunghezza 
-    double localCx = -2.0 * Fx / normFactor;
-    double localCy = -2.0
-     * Fy / normFactor;
-
-    Cx += localCx;
-    Cy += localCy;
+#pragma omp atomic
+    D += localDrag;
+#pragma omp atomic
+    L += -localLift;
 }
 
 const double& Node::getDensity() const

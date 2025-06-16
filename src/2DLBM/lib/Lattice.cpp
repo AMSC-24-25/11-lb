@@ -79,7 +79,6 @@ std::vector <int> evaluateBoundary(const std::vector<int>& indices, const Matrix
 
 Lattice::Lattice(unsigned int nx, unsigned int ny, double u, double Re, std::string outdir): NX(nx), NY(ny), u(u), Re(Re), outdir(outdir)
 {
-    
 
     ITERATIONS_PER_PROGRESS_UPDATE = 10;
     boundary_velocity.resize(2);
@@ -154,7 +153,7 @@ Lattice::Lattice(unsigned int nx, unsigned int ny, double u, double Re, std::str
         if (user_input == "n" || user_input == "N") {
             break;
         }
-        param_file << "# Obstacles:\n";
+        param_file << "# Obstacle:\n";
         std::string mask_type;
         std::cout << "Which type of obstacle? (circle / rect / airfoil): ";
         std::cin >> mask_type;
@@ -279,12 +278,12 @@ void Lattice::simulate(int max_steps, int iter_per_frame)
     const double halfOmegaSum = (omega_P+omega_M)/2.0;
     const double halfOmegaSub = (omega_P-omega_M)/2.0;
     auto startTime = std::chrono::high_resolution_clock::now();
+    double D, L;
 
     for(int currentStep = 0; currentStep < maxSteps; currentStep++)
     {
         const double Vx = boundary_velocity.at(0)*(1.0 - std::exp(-static_cast<double>(currentStep*currentStep)/t1));
         const double Vy = boundary_velocity.at(1)*(1.0 - std::exp(-static_cast<double>(currentStep*currentStep)/t1));
-        double Cd = 0.0, Cl = 0.0;
 
         #pragma omp parallel num_threads(64)
         {
@@ -305,15 +304,19 @@ void Lattice::simulate(int max_steps, int iter_per_frame)
                 for (int j=0; j<node_matrix.shape().at(1); j++)
                     node_matrix(i,j).streaming(*this);
         }
+        #pragma omp single
+        {
+            D = L = 0.0;
+        }
 
         if (object_count == 1)
         {
             for( int i=0; i<node_matrix.shape().at(0); i++)
                 for (int j=0; j<node_matrix.shape().at(1); j++)
-                    node_matrix(i,j).computeDragAndLift(Cd, Cl, 1.0, size , Vx);
+                    node_matrix(i,j).computeDragAndLift(D, L);
         }
         std::ofstream file_velocity(outdir+"/vel_data.txt", std::ios::app);
-        std::ofstream file_lift_drag(outdir+"/lift_drag.txt", std::ios::app);
+        std::ofstream file_lift_drag(outdir+"/lift_drag_coefficients.txt", std::ios::app);
 
         //Every ITERATIONS_PER_FRAME steps, save velocity data
         if (currentStep==1 || currentStep % ITERATIONS_PER_FRAME == 0) {
@@ -330,10 +333,10 @@ void Lattice::simulate(int max_steps, int iter_per_frame)
                     }
 
                     file_velocity << v << "\n";
-                    if (object_count==1)
-                        file_lift_drag << Cl << " " << Cd << "\n";
                 }
             }
+            if (object_count==1)
+                file_lift_drag << L/(2*(u*300)*(u*300)*1.0*size) << " " << D/(2*(u*300)*(u*300)*1.0*size) << "\n";
         }
 
         // Update the progress bar

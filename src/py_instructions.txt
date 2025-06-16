@@ -1,2 +1,0 @@
-/u/sw/toolchains/gcc-glibc/11.2.0/base/bin/python -m venv ~/newenv
-source ~/newenv/bin/activate

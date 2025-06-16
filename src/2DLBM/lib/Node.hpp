@@ -75,10 +75,10 @@ public:
     /**
      * @brief Accumulates drag and lift contributions for this node.
      * 
-     * @param Cx Drag Coefficient.
-     * @param Cy Lift coefficient.
+     * @param D Drag.
+     * @param L Lift.
      */
-    void computeDragAndLift(double &Cx, double &Cy, double dRef, double LRef, double URef);
+    void computeDragAndLift(double &D, double &L);
 
     // --- Getters ---
     const double& getDensity() const;

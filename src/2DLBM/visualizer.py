@@ -7,7 +7,7 @@ import os
 # input file name
 input_file = os.path.abspath(os.path.join(__file__, '..', '..', '..', 'output/vel_data.txt'))
 
-iteration_per_frame = 25
+iteration_per_frame = 50
 
 def read_data(file_name):
     with open(file_name, 'r') as f:
