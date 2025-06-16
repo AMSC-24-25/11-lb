@@ -215,9 +215,9 @@ constexpr int ITERATIONS_PER_PROGRESS_UPDATE = 100;
 
 int main(int argc, char* argv[]) {
 
-    if (argc != 8) {
+    if (argc != 7) {
         std::cerr << "Usage: " << argv[0]
-                  << " <mesh_size> <time_steps> <reynolds> [output_dir]\n";
+                  << " <mesh_size_x> <mesh_size_y> <number_of_steps> <reynolds_number> <iter_per_frame> <lid_velocity>\n";
         return EXIT_FAILURE;
     }
     // Simulation parameters
@@ -226,8 +226,7 @@ int main(int argc, char* argv[]) {
     int MAX_STEPS = std::stoi(argv[3]);
     double Re = std::stod(argv[4]);
     int ITER_PER_FRAME = std::stoi(argv[5]);
-    std::string out_dir = argv[6];
-    double u_lid = std::stod(argv[7]);;
+    double u_lid = std::stod(argv[6]);;
     int ITERATIONS_PER_FRAME = 200;
     
     const double dx = 1.0;
@@ -265,7 +264,7 @@ int main(int argc, char* argv[]) {
     kernel_init << <numBlocks, threadsPerBlock >> > (d_rho, d_rho2, d_u, d_u2, d_f, d_f2, NX, NY, rho0, u_lid, d_w);
     cudaDeviceSynchronize();
 
-    std::ofstream file_velocity(out_dir+"vel_data_cuda.txt");
+    std::ofstream file_velocity("vel_data_cuda.txt");
     if (!file_velocity.is_open()) {
         std::cerr << "Error opening the file for velocity.\n";
         return 1;
