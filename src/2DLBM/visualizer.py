@@ -32,7 +32,7 @@ def create_frames(nx, ny, data, num_iterations, vmax):
 
         plt.imshow(frame_data, cmap='RdBu_r', origin='lower', vmin=0, vmax = vmax)  # 'origin' è impostato su 'lower' per far partire y da 0 in basso
         plt.colorbar(label='Velocity Magnitude')
-        plt.title(f'Iteration {(iter + 1)*iteration_per_frame}')
+        plt.title(f'Iteration {(iter)*iteration_per_frame}')
 
         # La visualizzazione ora avrà l'asse x da 0 a nx e y da 0 a ny
         plt.pause(0.001)  
