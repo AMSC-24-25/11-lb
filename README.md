@@ -3,34 +3,149 @@
 This projects uses the Lattice Boltzmann Methods (LBM) to perform a 2D fluid simulation with the D2Q9 model.The aim for the hands-on was to solve the 2D lid-driven cavity problem, the project extended it to 3D Lid-Driven, 2D Wind-Tunnel-like problem and 2D Lid-Driven paralellized with CUDA.
 
 
-### Building the Project
+# Build and Execution Guide
+<br>
 
-To build the project using CMake, follow these steps:
+## 0. **Special Case** (in case of problem)
 
-1. Clone the repository and navigate to the main directory.
-2. Run the following commands:
+### macOS and OpenMP:
+Running the code natively on macOS requires the LLVM‐based Clang toolchain bundled with Xcode and the **libomp** runtime installed via **Homebrew**:
 
-   
-   ### Create a directory for build files
+```bash
+brew install libomp      # installs the OpenMP runtime
+```
+
+Because Apple’s Clang does not automatically locate Homebrew’s libomp, you must replace the standard OpenMP discovery block in `CMakeLists.txt`:
+
+```cmake
+ ❌ Default discovery (may fail on macOS)
+if (WITH_OPENMP)
+    find_package(OpenMP REQUIRED)
+    if (OpenMP_CXX_FOUND)
+        message(STATUS "Found OpenMP")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    endif()
+endif()
+```
+
+with the explicit linkage shown below:
+
+```cmake
+ ✅ Explicit linkage for Homebrew‐installed libomp
+if (WITH_OPENMP)
+    set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include")
+    set(OpenMP_CXX_LIB_NAMES "omp")
+    set(OpenMP_omp_LIBRARY   "/usr/local/opt/libomp/lib/libomp.dylib")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    link_directories("/usr/local/opt/libomp/lib")
+endif()
+```
+
+> **Why do the paths sometimes differ?**  
+> Homebrew installs libraries under the prefix returned by `brew --prefix`.  
+> - On Intel Macs this is typically `/usr/local/opt/...`.  
+> - On Apple Silicon it is `/opt/homebrew/opt/...`.  
+> Adjust the include and library paths accordingly.
+---
+<br>
+
+### CUDA:
+To execute the CUDA implementation you need an **NVIDIA GPU** and the **CUDA Toolkit** already installed. Occasionally, certain CUDA versions fail to auto-detect the correct compute capability, so you must set it manually.
+
+1. **Identify your GPU and toolkit version**
+
+```bash
+nvidia-smi        # prints GPU model (e.g., Tesla T4 → CC 7.5)
+nvcc --version    # prints CUDA Toolkit version
+```
+
+
+ 2. **Edit `CMakeLists.txt`**
+
+Replace the automatic architecture selection
+
+```cmake
+set(CMAKE_CUDA_ARCHITECTURES AUTO)
+```
+
+with the exact compute capability of your GPU, e.g. for a Tesla T4:
+
+```cmake
+set(CMAKE_CUDA_ARCHITECTURES 75)   # CC 7.5
+```
+
+> If multiple GPUs are present, list each architecture separated by semicolons, e.g. `set(CMAKE_CUDA_ARCHITECTURES 75;86)`.
+> 
+
+---
+<br>
+
+## 1. **Enable execution permissions for the launcher**
+
    ```bash
-   mkdir build
+   chmod +x run.sh
    ```
 
-   
-   ### Enter the build directory
+
+## 2. **Build and Run the simulation**
+
+   From the directory where the run.sh is, launch:
    ```bash
-   cd build
+   ./run.sh [FLAGS]
    ```
-  
-   ### Generate configuration files
-   ```bash
-   cmake ..
-   ```
-    
-   ### Build the project
-   ```bash
-   cmake --build .
-   ```
+
+---
+
+### Solver Selection flags
+
+| Flag          | Behavior                                  |
+|---------------|-------------------------------------------|
+| `--3dLbm`     | Select the 3D solver implementation.      |
+| `--2dLbm`     | Select the 2D solver implementation.      |
+| `--cuda`      | Use the CUDA-based GPU 2D implementation. |
+
+---
+
+### Available Flags (you must put the obligatory flags)
+
+| Flag                            | Behavior                                               | 3D LBM | 2D LBM | OBLIGATORY|
+|---------------------------------|--------------------------------------------------------|:------:|:------:|:---------------|
+| `-m`, `--mesh`                  | Define the grid resolution in X for 2D and for all direction in 3D.    | ✅     | ✅     | ✅|
+| `-s`, `--steps`                 | Set total number of simulation time steps.             | ✅     | ✅     |✅|
+| `-r`, `--re`, `--reynolds`      | Assign the Reynolds number for flow conditions.        | ✅     | ✅     |✅|
+| `-u`                            | Initial or boundary fluid velocity (default: 0.1).     | ✅     | ✅     |⛔|    
+| `-omp`, `--Openmp`              | Activate OpenMP.                                       | ✅     | ✅     |⛔|    
+| `-h`, `--help`                  | Display usage information and exit.                    | ✅     | ✅     |⛔|    
+| `-tunnel`                       | Apply wind-tunnel boundary geometry.                   | ⛔     | ✅     |⛔|   
+| `-my`                           | Specify grid resolution in Y only for 2D(equal to X default).      | ⛔     | ✅     |⛔| 
+
+---
+
+**Examples:**
+
+   * **3D solver** with a cubic mesh of 100 points, 1,000 time steps, Reynolds number = 500:
+
+     ```bash
+     ./run.sh --3dLbm -m 100 -s 1000 -r 500
+     ```
+
+   * **2D solver** with OpenMP, wind-tunnel geometry, mesh 200×100, 2,000 steps, Re = 1000:
+
+     ```bash
+     ./run.sh --2dLbm -m 200 -my 100 -s 2000 -r 1000 -omp -tunnel
+     ```
+
+   * **CUDA solver** on GPU architecture SM 7.5, mesh 256, 1,500 steps, Re = 750:
+
+     ```bash
+     ./run.sh --cuda -m 256 -s 1500 -r 750
+     ```
+## 3. **running cuda with coolab**
+
+if you want to running dthe cuda implementation but without having a Nvidia GPU you find a python notebook to upload in colab also all the instruction [here](src/cuda/lbm_cuda.ipynb)
+
+
+---
 
 
 
