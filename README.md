@@ -142,7 +142,7 @@ set(CMAKE_CUDA_ARCHITECTURES 75)   # CC 7.5
      ```
 ## 3. **running cuda with coolab**
 
-if you want to running dthe cuda implementation but without having a Nvidia GPU you find a python notebook to upload in colab also all the instruction [here](src/cuda/lbm_cuda.ipynb)
+if you want to run the cuda implementation without having a Nvidia GPU you find a python notebook to upload in colab with all the instruction [here](src/cuda/lbm_cuda.ipynb)
 
 
 ---
@@ -413,5 +413,85 @@ It can be observed that although the results with Re = 100 are relatively accura
         <td><img src="./media/250x250_re1000_steps10000_periteration20_fps24.gif" alt="250x250_re1000_steps10000_periteration20_fps24"></td>
     </tr>
 </table>
+
+
+
+<br><br>
+
+## 3D Lid-Driven Cavity Simulation with 3DLBM
+
+### Simulation Strategy
+
+* **Domain discretization:** The cavity is divided into cubic grid cells, each representing local fluid populations.
+* **Time-stepping cycle:**
+
+  1. **Collision:** Particle distributions relax toward local equilibrium, modeling viscous dissipation.
+  2. **Streaming:** Updated distributions move along discrete velocity directions to neighboring cells.
+  3. **Boundary conditions:**
+
+     * **Stationary walls:** Halfway bounce-back enforces no-slip zero-velocity at solid faces.
+     * **Moving lid:** Zou–He velocity boundary condition prescribes a uniform tangential speed on the top plane, delivering accurate momentum transfer.
+* **Stabilization:** A two-relaxation-time collision operator separates symmetric and anti-symmetric moments, damping spurious modes at moderate Reynolds numbers.
+* **Parallelization:** Shared-memory threading accelerates both collision and streaming operations, scaling efficiently on multicore processors.
+
+### Output and Post-Processing
+
+Simulation data are exported in VTK format and visualized using ParaView:
+
+* Bulk import of VTK sequences for time-resolved analysis.
+* Stream Tracer and Glyph filters to highlight vortex structures.
+* Automated rendering of video animations via ParaView’s Python scripting interface.
+
+<details>
+<summary>Gallery of videos (click to expand)</summary>
+
+<table>
+<tr>
+<th>Re=100 on 100×100×100</th>
+<th>Re=500 on 100×100×100</th>
+</tr>
+<tr>
+<td>
+<video width="320" controls>
+  <source src="videos/video_Re100_100x100x100.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+</td>
+<td>
+<video width="320" controls>
+  <source src="videos/video_Re500_100x100x100.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+</td>
+</tr>
+<tr>
+<th colspan="2">Re=1000 on 100×100×100</th>
+</tr>
+<tr>
+<td colspan="2">
+<video width="320" controls>
+  <source src="videos/video_Re1000_100x100x100.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+</td>
+</tr>
+</table>
+
+</details>
+
+### Representative Results
+
+* **Primary vortex:** At Re=1000, a dominant circulation fills the cavity, with symmetric secondary eddies at each corner.
+* **Velocity profiles:** Mid-plane velocity curves closely match literature benchmarks, confirming numerical accuracy.
+* **3D visualizations:** High-fidelity renderings capture complex vortical structures, highlighting the method’s capacity to resolve secondary flows.
+
+### Performance Highlights
+
+* Modular separation of physics and I/O allows easy extension to new geometries.
+* Threaded implementation achieves near-linear speedup, enabling large-grid simulations within practical runtimes.
+
+*End of section.*\*\*
+
+
 
 
