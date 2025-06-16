@@ -56,6 +56,11 @@ int main(int argc, char* argv[]) {
     std::cout << "Calculated viscosity: " << Cavity.get_nu() << "\n";
     std::cout << "τ (tau) = " << Cavity.get_tau() << "\n";
 
+    if(Cavity.get_tau()<0.6){
+        std::cout << "\n-----WARNING: TAU IS LOW-----" << "\n"; 
+        std::cout << "SIMULATION CAN DIVERGE\n";
+    }
+
     std::vector<std::pair<int, std::string>> frames;
     std::string outputDir;
     std::string ArgDir=argv[4];

@@ -62,7 +62,7 @@ if(ENABLE_CUDA)
 
    add_executable(11-LB ${CMAKE_SOURCE_DIR}/src/cuda/lbm_2D_liddrivencavity.cu)
    target_compile_options(11-LB PRIVATE
-   $<$<COMPILE_LANGUAGE:CUDA>:-O3 -use_fast_math>)
+   $<$<COMPILE_LANGUAGE:CUDA>:-O3 -use_fast_math -arch=sm_75>)
    set_target_properties(11-LB PROPERTIES
    CUDA_SEPARABLE_COMPILATION ON)
    target_link_libraries(11-LB PRIVATE CUDA::cudart)
