@@ -10,7 +10,7 @@
 class Lattice
 {
     public:
-        Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re, std::string outdir);
+        Lattice(unsigned int nx, unsigned int ny, double u, double Re, std::string outdir);
         void simulate(int max_steps, int iter_per_frame);
         Matrix<Node> node_matrix;
         unsigned int object_count = 0;
@@ -26,7 +26,7 @@ class Lattice
         int NX;
         int NY;
         double Re;
-        double u_lid;
+        double u;
         std::string outdir;
 
 };

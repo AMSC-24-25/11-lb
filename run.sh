@@ -11,17 +11,18 @@ Algorithm (choose one):
   --cuda                      CUDA-based solver
 
 Common options:
-  -m,  --mesh NX              Mesh dimension (single value for cubic mesh)
+  -m,  --mesh NX              Mesh dimension (single value for the mesh)
   -s,  --steps N              Number of time steps to simulate
   -r,  --re RE                Reynolds number
-  -d,  --dir PATH             Output directory (default: ./output)
+  -u                          velocity (default: 0.1)
+  -d,  --dir PATH             Output directory (default: output)
   -omp,--Openmp               Enable OpenMP
   -h,  --help                 Show this help
   -itf,--iters-per-frame N    Iterations per frame for output (default: 25)
 
   2D specific
    -tunnel  use the wind tunnel instead of lid driven cavity
-   -my      mesh dimensio on y 
+   -my      mesh dimension on y 
 
 
 EOF
@@ -32,6 +33,7 @@ ALGORITHM=""
 MESH_SIZE=""
 MESH_SIZE_Y=""
 TIME_STEPS=""
+U="0.1"
 REYNOLDS_NUMBER=""
 ITER_PER_FRAME="25"
 OUTPUT_DIR="output"
@@ -47,12 +49,13 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --3dLbm)   ALGORITHM="3dLbm"; shift ;;
     --2dLbm)   ALGORITHM="2dLbm"; shift ;;
-    --cuda)     ALGORITHM="cuda";      shift ;;
+    --cuda)     ALGORITHM="cuda"; shift ;;
     -tunnel) USE_TUNNEL=true; shift 1;;
     -my) MESH_SIZE_Y="$2"; shift 2;;
     -m|--mesh) MESH_SIZE="$2"; shift 2 ;;
     -s|--steps) TIME_STEPS="$2"; shift 2 ;;
     -r|--re|--reynolds) REYNOLDS_NUMBER="$2"; shift 2 ;;
+    -u) U="$2"; shift 2;;
     -d|--dir)  OUTPUT_DIR="$2";  shift 2 ;;
     -itf|--iters-per-frame|--frameite) ITER_PER_FRAME="$2"; shift 2 ;;
     -omp|--Openmp) USE_OPENMP=true; shift ;;
@@ -96,19 +99,19 @@ popd > /dev/null
 # Run
 if [[ $ALGORITHM == "3dLbm" ]]; then
 
-  exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$OUTPUT_DIR" "$ITER_PER_FRAME"
+  exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$OUTPUT_DIR" "$ITER_PER_FRAME" "$U"
   
 elif [[ $ALGORITHM == "2dLbm" ]]; then
 
   if [[ $USE_TUNNEL == true ]]; then
-    exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$MESH_SIZE_Y" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" "$OUTPUT_DIR" "$USE_TUNNEL"
+    exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$MESH_SIZE_Y" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" "$OUTPUT_DIR" "$U" "$USE_TUNNEL"
   else
-    exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$MESH_SIZE_Y" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" "$OUTPUT_DIR"
+    exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$MESH_SIZE_Y" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" "$OUTPUT_DIR" "$U"
   fi  
 
 elif [[ $ALGORITHM == "cuda" ]]; then
 
- exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$MESH_SIZE_Y" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" "$OUTPUT_DIR"
+ exec "${BUILD_DIR}/11-LB" "$MESH_SIZE" "$MESH_SIZE_Y" "$TIME_STEPS" "$REYNOLDS_NUMBER" "$ITER_PER_FRAME" "$OUTPUT_DIR" "$U"
 
 else
   echo "Unsupported algorithm: $ALGORITHM" >&2

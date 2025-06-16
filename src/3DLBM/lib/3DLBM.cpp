@@ -1,4 +1,8 @@
 #include "3DLBM.hpp"
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <filesystem>
 #ifdef USE_OPENMP
   #include <omp.h>
 #endif
@@ -15,6 +19,28 @@ TDLBM::TDLBM(unsigned int nx_, unsigned int ny_, unsigned int nz_, double U_lid_
     tau   = (6.0 * nu + 1.0) / 2.0;      
     ncells = nx * ny * nz;
 
+    std::ofstream param_file("output/parameters.txt", std::ios::trunc);    
+    if (param_file.is_open()) {
+        param_file << "# ---- LBM Simulation Parameters ----\n\n";
+        param_file << "# Domain Size\n";
+        param_file << "NX = " << nx_ << "\n";
+        param_file << "NY = " << ny_ << "\n";
+        param_file << "NZ = " << nz_ << "\n\n";
+
+        param_file << "# Physical Parameters\n";
+        param_file << "Re = " << Re << "\n";
+        param_file << "Lid velocity = " << U_lid_ << "\n";
+
+        param_file << "\n# Derived Parameters\n";
+        param_file << "nu (kinematic viscosity) = " << nu << "\n";
+        param_file << "tau (relaxation time) = " << tau << "\n";
+    } 
+    else {
+        std::cerr << "Could not open/create 'parameters.txt'\n";
+    }
+    std::cout << "\nParameters saved in 'parameters.txt'" << std::endl;
+    param_file.close();
+
     e.resize(Q);
     f.resize(ncells * Q, 0.0);
     f_new.resize(ncells * Q, 0.0);
@@ -26,6 +52,7 @@ TDLBM::TDLBM(unsigned int nx_, unsigned int ny_, unsigned int nz_, double U_lid_
     init_rho_v(rho, u);
     rho[idx(nx/2, ny/2, nz/2)] *= 1.0001;
     init_f(f, f_new, rho, u, e);
+
 }
 
 double TDLBM::weight(int i) const {
@@ -345,7 +372,7 @@ void TDLBM::apply_boundary_conditions(std::vector<double>& f,
     }
 }
 
-void TDLBM::evolution(){
+void TDLBM::simulate(){
     u_prev = u;
     collide_trt(f, rho, u, e);
     stream(f, f_new, e);

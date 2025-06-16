@@ -77,14 +77,13 @@ std::vector <int> evaluateBoundary(const std::vector<int>& indices, const Matrix
     return boundary_here;
 }
 
-Lattice::Lattice(unsigned int nx, unsigned int ny, double u_lid, double Re, std::string outdir): NX(nx), NY(ny), u_lid(u_lid), Re(Re), outdir(outdir)
+Lattice::Lattice(unsigned int nx, unsigned int ny, double u, double Re, std::string outdir): NX(nx), NY(ny), u(u), Re(Re), outdir(outdir)
 {
-    /*  TO SET MANUALLY  */
-    // Hard coded variables
+    
 
     ITERATIONS_PER_PROGRESS_UPDATE = 10;
     boundary_velocity.resize(2);
-    boundary_velocity.at(0) = 0.1; // Vx
+    boundary_velocity.at(0) = u; // Vx
     boundary_velocity.at(1) = 0.0; // Vy
 
     // Calculating other parameters

@@ -215,19 +215,19 @@ constexpr int ITERATIONS_PER_PROGRESS_UPDATE = 100;
 
 int main(int argc, char* argv[]) {
 
-    if (argc != 7) {
+    if (argc != 8) {
         std::cerr << "Usage: " << argv[0]
                   << " <mesh_size> <time_steps> <reynolds> [output_dir]\n";
         return EXIT_FAILURE;
     }
     // Simulation parameters
-    int NX = std::atoi(argv[1]);
-    int NY = std::atoi(argv[2]);
-    int MAX_STEPS = std::atoi(argv[3]);
-    double Re = std::atof(argv[4]);
-    int ITER_PER_FRAME = std::atoi(argv[5]);
+    int NX = std::stoi(argv[1]);
+    int NY = std::stoi(argv[2]);
+    int MAX_STEPS = std::stoi(argv[3]);
+    double Re = std::stod(argv[4]);
+    int ITER_PER_FRAME = std::stoi(argv[5]);
     std::string out_dir = argv[6];
-    const double u_lid = 0.5;
+    double u_lid = std::stod(argv[7]);;
     int ITERATIONS_PER_FRAME = 200;
     
     const double dx = 1.0;
@@ -281,14 +281,14 @@ int main(int argc, char* argv[]) {
         cudaDeviceSynchronize();
 
         // Apply boundary conditions
-        kernel_apply_boundary << <numBlocks, threadsPerBlock >> > (d_f, d_rho, d_u,
+        kernel_apply_boundary << <numBlocks, threadsPerBlock >> > (d_f2, d_rho2, d_u2,
             u_lid, NX, NY, d_w);
         cudaDeviceSynchronize();
 
         if (step % ITERATIONS_PER_FRAME == 0 || step == 1 || step == MAX_STEPS) {
             // Transfer results to host for saving to file 
             double* temp_vel = new double[NX * NY * D];
-            cudaMemcpy(temp_vel, d_u, size_velocity, cudaMemcpyDeviceToHost);
+            cudaMemcpy(temp_vel, d_u2, size_velocity, cudaMemcpyDeviceToHost);
 
             for (int j = 0; j < NY; ++j) {
                 for (int i = 0; i < NX; ++i) {

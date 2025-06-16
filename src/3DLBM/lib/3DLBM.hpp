@@ -170,7 +170,7 @@ public:
     /**
      * @brief Perform one time step evolution.
      */
-    void evolution();
+    void simulate();
 
     /**
      * @brief Equilibrium distribution function.

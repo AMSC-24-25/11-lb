@@ -17,13 +17,12 @@
 namespace fs = std::filesystem;
 
 const int ITERATIONS_PER_PROGRESS_UPDATE = 10;
-const double u_lid = 0.1;
 int nx, ny, nz;
 
 int main(int argc, char* argv[]) {
-    if (argc !=6) {
+    if (argc !=7) {
         std::cerr << "Usage: " << argv[0]
-                  << " <mesh_size> <time_steps> <reynolds> [output_dir]\n";
+                  << " <mesh_size> <time_steps> <reynolds> \n";
         return EXIT_FAILURE;
     }
 
@@ -31,6 +30,7 @@ int main(int argc, char* argv[]) {
     int Steps = std::stoi(argv[2]);
     int Re    = std::stoi(argv[3]);
     int ITERATIONS_PER_FRAME=std::stoi(argv[5]);
+    double u_lid = std::stod(argv[6]);;
     nx = mesh; ny = mesh; nz = mesh;
 
     #ifdef USE_OPENMP
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     int frameCounter = 0;
 
     for (int n = 1; n <= Steps; ++n) {
-        Cavity.evolution();
+        Cavity.simulate();
 
         if (n == 1 || n % ITERATIONS_PER_FRAME == 0) {
             std::string filename = outputDir + "/frame_" + std::to_string(frameCounter) + ".vtk";
