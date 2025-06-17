@@ -443,25 +443,25 @@ Simulation data are exported in VTK format and visualized using ParaView:
 * Automated rendering of video animations via ParaView’s Python scripting interface.
 
 <details>
-<summary>Gallery of videos (click to expand)</summary>
+ <summary> Gallery of videos (click to espand) </summary>
 
+### evolutions of system with the streamline section evolutions
+ 
 <table>
-<tr>
-<th>Re=100 on 100×100×100</th>
-<th>Re=500 on 100×100×100</th>
+ <tr>
+<th colspan="2">Re=100 on 100×100×100</th>
 </tr>
 <tr>
-<td>
-<video width="320" controls>
-  <source src="videos/video_Re100_100x100x100.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<td colspan="2">
+<img src="./media/Re_100.gif" alt="Re_100">
 </td>
-<td>
-<video width="320" controls>
-  <source src="videos/video_Re500_100x100x100.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+</tr>
+ <tr>
+<th colspan="2">Re=500 on 100×100×100</th>
+</tr>
+<tr>
+<td colspan="2">
+<img src="./media/Re_500.gif" alt="Re_500">
 </td>
 </tr>
 <tr>
@@ -469,10 +469,7 @@ Simulation data are exported in VTK format and visualized using ParaView:
 </tr>
 <tr>
 <td colspan="2">
-<video width="320" controls>
-  <source src="videos/video_Re1000_100x100x100.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<img src="./media/Re_1000.gif" alt="Re_1000">
 </td>
 </tr>
 </table>
