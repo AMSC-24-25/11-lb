@@ -18,7 +18,7 @@ brew install libomp      # installs the OpenMP runtime
 Because Apple’s Clang does not automatically locate Homebrew’s libomp, you must replace the standard OpenMP discovery block in `CMakeLists.txt`:
 
 ```cmake
- ❌ Default discovery (may fail on macOS)
+Default discovery (may fail on macOS)
 if (WITH_OPENMP)
     find_package(OpenMP REQUIRED)
     if (OpenMP_CXX_FOUND)
@@ -31,7 +31,7 @@ endif()
 with the explicit linkage shown below:
 
 ```cmake
- ✅ Explicit linkage for Homebrew‐installed libomp
+Explicit linkage for Homebrew‐installed libomp
 if (WITH_OPENMP)
     set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include")
     set(OpenMP_CXX_LIB_NAMES "omp")
@@ -140,142 +140,17 @@ set(CMAKE_CUDA_ARCHITECTURES 75)   # CC 7.5
      ```bash
      ./run.sh --cuda -m 256 -s 1500 -r 750
      ```
-## 3. **running cuda with coolab**
+## 3. **running cuda with Colab**
 
-if you want to running dthe cuda implementation but without having a Nvidia GPU you find a python notebook to upload in colab also all the instruction [here](src/cuda/lbm_cuda.ipynb)
+If you want to run the cuda implementation but without having a Nvidia GPU you can find a python notebook to upload in Colab [here](src/cuda/lbm_cuda.ipynb)
 
 
 ---
 
-
-
-### Parallelization Strategy
-We parallelized the code using OpenMP. The main bottleneck in the computation is represented by a single nested for-loop. The code was written so that each iteration was completely independent from the others and so that they all could be executed in parallel. To achieve this we needed to *bufferize* the whole computation so that two sets of memory location were used and then swapped for each iteration.
-We observed a significant improvement in computation time.
-
-
-### Scalability
-
-<div class="container">
-  <div class="column">
-    <h4>Strong scalability test (6 cores, 12 threads)</h4>
-    <div class="note">Execution times recorded on a PC with 6 cores and 12 threads.<br>Simulation run for 10'000 iterations.</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Threads</th>
-          <th>Time (ms)</th>
-          <th>Speedup</th>
-          <th>Efficiency</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td>69187</td><td>-</td><td>-</td></tr>
-        <tr><td>2</td><td>38153</td><td>1.81</td><td>0.91</td></tr>
-        <tr><td>3</td><td>29987</td><td>2.31</td><td>0.77</td></tr>
-        <tr><td>4</td><td>27700</td><td>2.50</td><td>0.63</td></tr>
-        <tr><td>5</td><td>24697</td><td>2.80</td><td>0.56</td></tr>
-        <tr><td>6</td><td>22624</td><td>3.06</td><td>0.51</td></tr>
-        <tr><td>7</td><td>19980</td><td>3.46</td><td>0.49</td></tr>
-        <tr><td>8</td><td>17710</td><td>3.91</td><td>0.49</td></tr>
-        <tr><td>9</td><td>16086</td><td>4.30</td><td>0.48</td></tr>
-        <tr><td>10</td><td>14747</td><td>4.69</td><td>0.47</td></tr>
-        <tr><td>11</td><td>14664</td><td>4.72</td><td>0.43</td></tr>
-        <tr><td>12</td><td>18187</td><td>3.80</td><td>0.32</td></tr>
-      </tbody>
-    </table>
-  </div>
-  
-  <div class="column">
-    <h4>Strong scalability test (8 cores, 8 threads)</h4>
-    <div class="note">Execution times recorded on a PC with 8 cores and 8 threads.<br>Simulation run for 10'000 iterations.</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Threads</th>
-          <th>Time (ms)</th>
-          <th>Speedup</th>
-          <th>Efficiency</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td>53929</td><td>-</td><td>-</td></tr>
-        <tr><td>2</td><td>31645</td><td>1.70</td><td>0.85</td></tr>
-        <tr><td>3</td><td>23348</td><td>2.31</td><td>0.77</td></tr>
-        <tr><td>4</td><td>19208</td><td>2.81</td><td>0.70</td></tr>
-        <tr><td>5</td><td>16473</td><td>3.27</td><td>0.65</td></tr>
-        <tr><td>6</td><td>15139</td><td>3.56</td><td>0.59</td></tr>
-        <tr><td>7</td><td>13518</td><td>3.99</td><td>0.57</td></tr>
-        <tr><td>8</td><td>25401</td><td>2.12</td><td>0.27</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
-<div class="container">
-  <div class="column">
-    <h4>Weak scalability test (6 cores, 12 threads)</h4>
-    <div class="note">Execution times recorded on a PC with 6 cores and 12 threads.<br>Simulation run for 1'000 iterations with ~20'000 lattice points per thread.</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Threads</th>
-          <th>Cavity Size</th>
-          <th>Time (ms)</th>
-          <th>Efficiency</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td>142x141</td><td>1381</td><td>-</td></tr>
-        <tr><td>2</td><td>200x200</td><td>1537</td><td>0.90</td></tr>
-        <tr><td>3</td><td>246x244</td><td>1821</td><td>0.76</td></tr>
-        <tr><td>4</td><td>284x282</td><td>2029</td><td>0.68</td></tr>
-        <tr><td>5</td><td>317x316</td><td>2205</td><td>0.63</td></tr>
-        <tr><td>6</td><td>347x346</td><td>2351</td><td>0.59</td></tr>
-        <tr><td>7</td><td>375x374</td><td>2503</td><td>0.55</td></tr>
-        <tr><td>8</td><td>400x400</td><td>2598</td><td>0.53</td></tr>
-        <tr><td>9</td><td>425x424</td><td>2651</td><td>0.52</td></tr>
-        <tr><td>10</td><td>448x447</td><td>2748</td><td>0.50</td></tr>
-        <tr><td>11</td><td>470x469</td><td>2942</td><td>0.47</td></tr>
-        <tr><td>12</td><td>491x489</td><td>3288</td><td>0.42</td></tr>
-      </tbody>
-    </table>
-  </div>
-  
-  <div class="column">
-    <h4>Weak scalability test (8 cores, 8 threads)</h4>
-    <div class="note">Execution times recorded on a PC with 8 cores and 8 threads.<br>Simulation run for 1'000 iterations with ~20'000 lattice points per thread.</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Threads</th>
-          <th>Cavity Size</th>
-          <th>Time (ms)</th>
-          <th>Efficiency</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td>142x141</td><td>1016</td><td>-</td></tr>
-        <tr><td>2</td><td>200x200</td><td>1027</td><td>0.99</td></tr>
-        <tr><td>3</td><td>246x244</td><td>1058</td><td>0.96</td></tr>
-        <tr><td>4</td><td>284x282</td><td>1109</td><td>0.92</td></tr>
-        <tr><td>5</td><td>317x316</td><td>1191</td><td>0.85</td></tr>
-        <tr><td>6</td><td>347x346</td><td>1257</td><td>0.81</td></tr>
-        <tr><td>7</td><td>375x374</td><td>1295</td><td>0.78</td></tr>
-        <tr><td>8</td><td>400x400</td><td>1413</td><td>0.72</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
 ### Validation of Results
-We were provided with some reference data to compare our results.
-The following tables, for instance, allows to compare the y-component of the velocity of the fluid along the vertical line through the geometrical center of the cavity.  
+The following graphs allows to compare the y-component of the velocity of the fluid along the vertical line through the geometrical center of the cavity.  
 
 It can be observed that although the results with Re = 100 are relatively accurate, there's an error build-up with toward the lower part of the cavity and with increasing Reynolds numbers. That can probably be caused by slightly different parameters and formulae used. We are confident that our code works as intended and that, with some tweaking, we could allign our results with the reference data.
-
-
 
 <div class="container2">
   <div class="row2">
