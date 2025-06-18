@@ -2,6 +2,16 @@
 ### Introduction and objectives
 This projects uses the Lattice Boltzmann Methods (LBM) to perform a 2D fluid simulation with the D2Q9 model.The aim for the hands-on was to solve the 2D lid-driven cavity problem, the project extended it to 3D Lid-Driven, 2D Wind-Tunnel-like problem and 2D Lid-Driven paralellized with CUDA.
 
+## Requirements and software 
+### tool:
+- g++ compiler with C++17 support or higher.
+- OpenMP dev package.
+- Nvidia GPU and cuda toolkit (only for the execution pf cuda code)
+- python (used for the 2D post-processing)
+### software
+- paraview (for 3D post-processing)
+
+<br>
 
 # Build and Execution Guide
 <br>
@@ -142,7 +152,7 @@ set(CMAKE_CUDA_ARCHITECTURES 75)   # CC 7.5
      ```
 ## 3. **running cuda with Colab**
 
-If you want to run the cuda implementation but without having a Nvidia GPU you can find a python notebook to upload in Colab [here](src/cuda/lbm_cuda.ipynb)
+if you want to running dthe cuda implementation but without having a Nvidia GPU you find a python notebook to upload in colab also all the instruction [here](src/cuda/lbm_cuda.ipynb)
 
 
 ---
@@ -288,5 +298,160 @@ It can be observed that although the results with Re = 100 are relatively accura
         <td><img src="./media/250x250_re1000_steps10000_periteration20_fps24.gif" alt="250x250_re1000_steps10000_periteration20_fps24"></td>
     </tr>
 </table>
+
+
+
+<br><br>
+
+## 3D Lid-Driven Cavity Simulation with 3DLBM
+
+### Simulation Strategy
+
+* **Domain discretization:** The cavity is divided into cubic grid cells, each representing local fluid populations.
+* **Time-stepping cycle:**
+
+  1. **Collision:** Particle distributions relax toward local equilibrium, modeling viscous dissipation.
+  2. **Streaming:** Updated distributions move along discrete velocity directions to neighboring cells.
+  3. **Boundary conditions:**
+
+     * **Stationary walls:** Halfway bounce-back enforces no-slip zero-velocity at solid faces.
+     * **Moving lid:** Zou–He velocity boundary condition prescribes a uniform tangential speed on the top plane, delivering accurate momentum transfer.
+* **Stabilization:** A two-relaxation-time collision operator separates symmetric and anti-symmetric moments, damping spurious modes at moderate Reynolds numbers.
+* **Parallelization:** Shared-memory threading accelerates both collision and streaming operations, scaling efficiently on multicore processors.
+
+### Output and Post-Processing
+
+Simulation data are exported in VTK format and visualized using ParaView:
+
+* Bulk import of VTK sequences for time-resolved analysis.
+* Stream Tracer and Glyph filters to highlight vortex structures.
+* Automated rendering of video animations via ParaView’s Python scripting interface.
+
+<details>
+ <summary> Gallery of videos (click to espand) </summary>
+
+### evolutions of system with the streamline section evolutions
+ 
+<table>
+ <tr>
+<th colspan="2">Re=100 on 100×100×100</th>
+</tr>
+<tr>
+<td colspan="2">
+<img src="./media/Re_100.gif" alt="Re_100">
+</td>
+</tr>
+ <tr>
+<th colspan="2">Re=500 on 100×100×100</th>
+</tr>
+<tr>
+<td colspan="2">
+<img src="./media/Re_500.gif" alt="Re_500">
+</td>
+</tr>
+<tr>
+<th colspan="2">Re=1000 on 100×100×100</th>
+</tr>
+<tr>
+<td colspan="2">
+<img src="./media/Re_1000.gif" alt="Re_1000">
+</td>
+</tr>
+</table>
+
+### Tubolar streamlines produced from a sphere seed
+
+<table>
+    <tr>
+        <th>Re=100 on a 100x100x100 cavity</th>
+        <th>Re=500 on a 100x100x100 cavity</th>
+        <th>Re=1000 on a 100x100x100 cavity</th>
+    </tr>
+    </tr>
+    <tr>
+        <td><img src="./media/screen tubolar streamline/Re100T.png" alt="Re100T"></td>
+        <td><img src="./media/screen tubolar streamline/Re500T.png" alt="Re500T"></td>
+         <td><img src="./media/screen tubolar streamline/Re1000T.png" alt="Re1000T"></td>
+    </tr>
+    
+</table>
+
+### isosurfaces and is sections
+
+<table>
+    <tr>
+        <th>Re=100 on a 100x100x100 cavity</th>
+        <th>Re=500 on a 100x100x100 cavity</th>
+        <th>Re=1000 on a 100x100x100 cavity</th>
+    </tr>
+    </tr>
+    <tr>
+        <td><img src="./media/isosurfacesection vs non/Re100I2.png" alt="Re100I2"></td>
+        <td><img src="./media/isosurfacesection vs non/Re500I.png" alt="Re500I"></td>
+        <td><img src="./media/isosurfacesection vs non/Re1000I.png" alt="Re1000"></td>
+    </tr>
+    <tr>
+        <td><img src="./media/isosurfacesection vs non/Re100I.png" alt="Re100I2"></td>
+        <td><img src="./media/isosurfacesection vs non/Re500I2.png" alt="Re500I"></td>
+        <td><img src="./media/isosurfacesection vs non/Re1000I2.png" alt="Re1000"></td>
+    </tr>
+    
+</table>
+
+### Arrow representing vector of velocity
+
+<table>
+    <tr>
+        <th>Re=100 on a 100x100x100 cavity</th>
+        <th>Re=500 on a 100x100x100 cavity</th>
+        <th>Re=1000 on a 100x100x100 cavity</th>
+    </tr>
+    </tr>
+    <tr>
+        <td><img src="./media/arrow/re100A.png" alt="Re100A" width="3000"></td>
+        <td><img src="./media/arrow/re500A.png" alt="Re500A"  width="3000"></td>
+        <td><img src="./media/arrow/re1000A.png" alt="Re1000A"  width="3000"></td>
+    </tr>
+ 
+</table>
+
+### high reynolds exemple
+<table>
+    <tr>
+        <th>Re=3000 on a 80x80x80 cavity</th>
+   </tr>
+    </tr>
+    <tr>
+        <td><img src="media/evo3000.gif" alt="evo3000" ></td>
+    </tr>
+    <tr>
+        <td><img src="media/st3000.png" alt="st3000" ></td>
+    </tr>
+
+    
+</table>
+
+
+</details>
+
+## Results
+For a comprehensive quantitative and qualitative analysis of our simulation outcomes, please refer to the accompanying LaTeX report (utoref{sec:detailed_analysis} in the main document).
+
+also we arrive at this conclusion about our implememtation:
+
+- **Computational demand:** High-Reynolds runs require fine meshes to maintain stability and accuracy—coarser grids lead to divergence or excessive numerical diffusion. As Reynolds increases, the necessary lattice resolution grows cubically, demanding substantial CPU time and memory.
+- **VTK-based output:** Saving each snapshot in VTK format streamlines post‑processing in ParaView, offering flexible filtering, scripting, and high-quality rendering. However, the file size scales with mesh size and snapshot frequency, resulting in significant disk usage and I/O overhead for large 3D grids.
+- **Method trade-offs:** LBM’s locality and simplicity yield excellent parallel efficiency, yet the need for uniformly fine lattices can limit applicability in highly turbulent or multiscale flows without adaptive refinement.
+
+For validation of the 3D data we have compared this with this paper [Validation Results](https://www.sciencedirect.com/science/article/pii/0021999187901902).
+
+
+## Authors
+
+- Federico Pinto
+- Mattia Gotti
+- Michele milani
+
+
 
 

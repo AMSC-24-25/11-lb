@@ -37,7 +37,7 @@ include_directories(src/common)
 if(ENABLE_3D)
     file(GLOB SOURCES_3D
          src/3DLBM/*.cpp
-         src/3DLBM/lib/*.cpp
+         src/3DLBM/include/*.cpp
          src/common/*.cpp)
     add_executable(11-LB ${SOURCES_3D})
     if(WITH_OPENMP)
@@ -49,7 +49,7 @@ endif()
 if(ENABLE_2D)
     file(GLOB SOURCES_2D
          src/2DLBM/*.cpp
-         src/2DLBM/lib/*.cpp
+         src/2DLBM/include/*.cpp
          src/common/*.cpp)
     add_executable(11-LB ${SOURCES_2D})
     if(WITH_OPENMP)

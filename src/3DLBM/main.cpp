@@ -7,8 +7,8 @@
 #include <chrono>
 #include <string>
 #include <filesystem>
-#include "lib/3DLBM.hpp"
-#include "lib/VTK.hpp"
+#include "include/3DLBM.hpp"
+#include "include/VTK.hpp"
 
 #ifdef USE_OPENMP
   #include <omp.h>

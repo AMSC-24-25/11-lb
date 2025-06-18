@@ -1,5 +1,5 @@
-#include "lib/Lattice.hpp"
-#include "lib/LDRIVEN.hpp"
+#include "include/Lattice.hpp"
+#include "include/LDRIVEN.hpp"
 #include <iostream>
 #include <string>
 #include <filesystem>
