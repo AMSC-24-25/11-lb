@@ -159,11 +159,10 @@ void Node::applyZouHeBoundary(Lattice &lattice)
         else if (position.at(0)==(NX-1) && position.at(1)!=0 && position.at(1)!=(NY-1))
         {
             density = 1.0;
-            velocity.at(1) = 0.0;
             velocity.at(0) = f.at(0) + f.at(2) + f.at(4) + 2.0 * (f.at(1) + f.at(5) + f.at(8)) - 1.0;
             f.at(3) = f.at(1)- 2.0 / 3.0 * density * velocity.at(0);
-            f.at(6) = f.at(8)- 0.5 * (f.at(2) - f.at(4)) - 1.0 / 6.0 * density * velocity.at(0);//+ 0.5 * density * velocity.at(1);
-            f.at(7) = f.at(5)+ 0.5 * (f.at(2) - f.at(4)) - 1.0 / 6.0 * density * velocity.at(0);//- 0.5 * density * velocity.at(1);
+            f.at(6) = f.at(8)- 0.5 * (f.at(2) - f.at(4)) - 1.0 / 6.0 * density * velocity.at(0);
+            f.at(7) = f.at(5)+ 0.5 * (f.at(2) - f.at(4)) - 1.0 / 6.0 * density * velocity.at(0);
         }
         // BC on bottom wall
         else if (position.at(0)!=0 && position.at(0)!=(NX-1) && position.at(1)==(NY-1))

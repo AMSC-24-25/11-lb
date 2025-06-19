@@ -3,13 +3,13 @@
 This projects uses the Lattice Boltzmann Methods (LBM) to perform a 2D fluid simulation with the D2Q9 model.The aim for the hands-on was to solve the 2D lid-driven cavity problem, the project extended it to 3D Lid-Driven, 2D Wind-Tunnel-like problem and 2D Lid-Driven paralellized with CUDA.
 
 ## Requirements and software 
-### tool:
+### Tools:
 - g++ compiler with C++17 support or higher.
 - OpenMP dev package.
 - Nvidia GPU and cuda toolkit (only for the execution pf cuda code)
-- python (used for the 2D post-processing)
-### software
-- paraview (for 3D post-processing)
+- Python (used for the 2D post-processing)
+### Software
+- Paraview (for 3D post-processing)
 
 <br>
 
@@ -150,7 +150,29 @@ set(CMAKE_CUDA_ARCHITECTURES 75)   # CC 7.5
      ```bash
      ./run.sh --cuda -m 256 -s 1500 -r 750
      ```
-## 3. **running cuda with Colab**
+
+## Plotting data using the visualizer:
+
+To visualizer the results of the 2D simulation, either lid-driven cavity or tunnel-type problem, move in the 2DLBM folder with:
+
+```bash
+     cd src && cd 2DLBM
+```
+
+Once in the correct folder, run the python script:
+
+```bash
+     python visualizer.py
+```
+
+In case the visualizer does not work, you might have some libraries conflicts. In that case run the visualizer in a virtual environment. You can create it with:
+
+```bash
+/u/sw/toolchains/gcc-glibc/11.2.0/base/bin/python -m venv ~/newenv &&
+source ~/newenv/bin/activate
+```
+The output video is saved in the 'output' directory.
+## 3. **Running CUDA with Colab**
 
 if you want to running dthe cuda implementation but without having a Nvidia GPU you find a python notebook to upload in colab also all the instruction [here](src/cuda/lbm_cuda.ipynb)
 
@@ -450,7 +472,7 @@ For validation of the 3D data we have compared this with this paper [Validation 
 
 - Federico Pinto
 - Mattia Gotti
-- Michele milani
+- Michele Milani
 
 
 

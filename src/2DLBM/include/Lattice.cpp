@@ -252,7 +252,7 @@ Lattice::Lattice(unsigned int nx, unsigned int ny, double u, double Re, std::str
     }
     file_velocity << NX << "\n" << NY << "\n";
 
-    std::ofstream file_lift_drag(outdir+"/lift_drag.txt", std::ios::trunc);
+    std::ofstream file_lift_drag(outdir+"/lift_drag_coefficients.txt", std::ios::trunc);
         if (!file_lift_drag.is_open()) {
             std::cerr << "could not opene/create 'lift_drag.txt'.\n";
             return;
