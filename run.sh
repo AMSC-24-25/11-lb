@@ -76,7 +76,7 @@ fi
 BUILD_DIR="build"
 mkdir -p "$BUILD_DIR"
 pushd "$BUILD_DIR" > /dev/null
-CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS=-fsanitize=address"
+CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=release"
 [[ $USE_OPENMP == true ]] && CMAKE_FLAGS+=" -DWITH_OPENMP=ON" || CMAKE_FLAGS+=" -DWITH_OPENMP=OFF"
 
 
