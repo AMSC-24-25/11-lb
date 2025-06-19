@@ -15,7 +15,6 @@ Common options:
   -s,  --steps N              Number of time steps to simulate
   -r,  --re RE                Reynolds number
   -u                          velocity (default: 0.1)
-  -d,  --dir PATH             Output directory (default: output)
   -omp,--Openmp               Enable OpenMP
   -h,  --help                 Show this help
   -itf,--iters-per-frame N    Iterations per frame for output (default: 25)
@@ -56,7 +55,6 @@ while [[ $# -gt 0 ]]; do
     -s|--steps) TIME_STEPS="$2"; shift 2 ;;
     -r|--re|--reynolds) REYNOLDS_NUMBER="$2"; shift 2 ;;
     -u) U="$2"; shift 2;;
-    -d|--dir)  OUTPUT_DIR="$2";  shift 2 ;;
     -itf|--iters-per-frame|--frameite) ITER_PER_FRAME="$2"; shift 2 ;;
     -omp|--Openmp) USE_OPENMP=true; shift ;;
     
