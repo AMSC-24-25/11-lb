@@ -248,7 +248,7 @@ void Node::bounceBack()
     }
 }
 
-void Node::computeDragAndLift(double &D, double &L)
+void Node::computeDragAndLift(double &D, double &L, double u, double size)
 {
     float localDrag = 0;
     float localLift = 0;
@@ -297,10 +297,15 @@ void Node::computeDragAndLift(double &D, double &L)
         localLift -= t;
     }
 
+double rho = 1.0;      // densità LBM
+double A = size;       // diametro cilindro (in nodi)
+double U = u;          // velocità di riferimento (boundary_velocity.at(0))
+
+// N.B.: This operations have to be atomic to avoid write conflict 
 #pragma omp atomic
-    D += localDrag;
+    D += localDrag / (0.5 * rho * U * U * A);
 #pragma omp atomic
-    L += -localLift;
+    L += -localLift / (0.5 * rho * U * U * A);
 }
 
 const double& Node::getDensity() const
