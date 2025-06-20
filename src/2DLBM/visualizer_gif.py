@@ -6,7 +6,7 @@ import os
 # input file name (modifica se il percorso cambia)
 input_file = os.path.abspath(os.path.join(__file__, '..', '..', '..', 'output/vel_data.txt'))
 
-iteration_per_frame = 25  # intervallo tra salvataggi nel file
+iteration_per_frame = 30  # intervallo tra salvataggi nel file
 
 def read_data(file_name):
     with open(file_name, 'r') as f:

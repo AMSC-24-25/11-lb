@@ -165,8 +165,8 @@ The simulation results for Re = 100 closely match the reference data, indicating
         <th>cl cd</th>
     </tr>
     <tr>
-        <td><img src="./media/200x80_re2200_steps10000_periteration50_fps24.gif" alt="200x80_re2200_steps10000_periteration50_fps24"></td>
-        <td><img src="./media/250x250_re1000_steps10000_periteration20_fps24.gif" alt="250x250_re1000_steps10000_periteration20_fps24"></td>
+        <td><img src="./media/600x200_re1000_circle.gif" alt="600x200_re1000_circle"></td>
+        <td><img src="./media/coefficients_plot_circle.png" alt="media/coefficients_plot_circle"></td>
     </tr>
 </table>
 
