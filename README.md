@@ -1,122 +1,54 @@
-# Project Group 11: Lattice Boltzmann Methods 
-### Introduction and objectives
-This projects uses the Lattice Boltzmann Methods (LBM) to perform a 2D fluid simulation with the D2Q9 model.The aim for the hands-on was to solve the 2D lid-driven cavity problem, the project extended it to 3D Lid-Driven, 2D Wind-Tunnel-like problem and 2D Lid-Driven paralellized with CUDA.
+# Project Group 11: Lattice Boltzmann Method
 
-## Requirements and software 
-### Tools:
-- g++ compiler with C++17 support or higher.
-- OpenMP dev package.
-- Nvidia GPU and cuda toolkit (only for the execution pf cuda code)
-- Python (used for the 2D post-processing)
+## Introduction and Objectives
+
+This project implements the Lattice Boltzmann Method (LBM) to simulate fluid flows in both 2D and 3D, using the D2Q9 and D3Q19 models. It includes a 2D lid-driven cavity problem, a 3D lid-driven cavity simulation, a 2D wind tunnel configuration with obstacles insertion and a 2D CUDA-parallelized implementation for GPU acceleration.
+
+
+---
+
+## Requirements
+
+### Tools
+- `g++` with C++17 or higher
+- OpenMP development package
+- NVIDIA GPU + CUDA Toolkit (only for CUDA runs)
+- Python (for 2D post-processing)
+
 ### Software
-- Paraview (for 3D post-processing)
+- ParaView (for 3D visualization)
 
-<br>
+---
 
-# Build and Execution Guide
-<br>
+## Compilation and Execution
 
-## 0. **Special Case** (in case of problem)
+### 1. Make the launcher script executable
 
-### macOS and OpenMP:
-Running the code natively on macOS requires the LLVM‐based Clang toolchain bundled with Xcode and the **libomp** runtime installed via **Homebrew**:
+Before running the simulation, ensure that the launcher script has execution permissions:
 
 ```bash
-brew install libomp      # installs the OpenMP runtime
+chmod +x run.sh
 ```
 
-Because Apple’s Clang does not automatically locate Homebrew’s libomp, you must replace the standard OpenMP discovery block in `CMakeLists.txt`:
+### 2. Run the simulation
 
-```cmake
-Default discovery (may fail on macOS)
-if (WITH_OPENMP)
-    find_package(OpenMP REQUIRED)
-    if (OpenMP_CXX_FOUND)
-        message(STATUS "Found OpenMP")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    endif()
-endif()
-```
-
-with the explicit linkage shown below:
-
-```cmake
-Explicit linkage for Homebrew‐installed libomp
-if (WITH_OPENMP)
-    set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include")
-    set(OpenMP_CXX_LIB_NAMES "omp")
-    set(OpenMP_omp_LIBRARY   "/usr/local/opt/libomp/lib/libomp.dylib")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    link_directories("/usr/local/opt/libomp/lib")
-endif()
-```
-
-> **Why do the paths sometimes differ?**  
-> Homebrew installs libraries under the prefix returned by `brew --prefix`.  
-> - On Intel Macs this is typically `/usr/local/opt/...`.  
-> - On Apple Silicon it is `/opt/homebrew/opt/...`.  
-> Adjust the include and library paths accordingly.
----
-<br>
-
-### CUDA:
-To execute the CUDA implementation you need an **NVIDIA GPU** and the **CUDA Toolkit** already installed. Occasionally, certain CUDA versions fail to auto-detect the correct compute capability, so you must set it manually.
-
-1. **Identify your GPU and toolkit version**
+Once the script is executable, run the simulation by passing the required arguments:
 
 ```bash
-nvidia-smi        # prints GPU model (e.g., Tesla T4 → CC 7.5)
-nvcc --version    # prints CUDA Toolkit version
+./run.sh [FLAGS]
 ```
-
-
- 2. **Edit `CMakeLists.txt`**
-
-Replace the automatic architecture selection
-
-```cmake
-set(CMAKE_CUDA_ARCHITECTURES AUTO)
-```
-
-with the exact compute capability of your GPU, e.g. for a Tesla T4:
-
-```cmake
-set(CMAKE_CUDA_ARCHITECTURES 75)   # CC 7.5
-```
-
-> If multiple GPUs are present, list each architecture separated by semicolons, e.g. `set(CMAKE_CUDA_ARCHITECTURES 75;86)`.
-> 
-
----
-<br>
-
-## 1. **Enable execution permissions for the launcher**
-
-   ```bash
-   chmod +x run.sh
-   ```
-
-
-## 2. **Build and Run the simulation**
-
-   From the directory where the run.sh is, launch:
-   ```bash
-   ./run.sh [FLAGS]
-   ```
 
 ---
 
-### Solver Selection flags
+### Solver Selection
 
-| Flag          | Behavior                                  |
-|---------------|-------------------------------------------|
-| `--3dLbm`     | Select the 3D solver implementation.      |
-| `--2dLbm`     | Select the 2D solver implementation.      |
-| `--cuda`      | Use the CUDA-based GPU 2D implementation. |
+| Flag      | Description                      |
+|-----------|----------------------------------|
+| `--2dLbm` | Run the 2D solver                |
+| `--3dLbm` | Run the 3D solver                |
+| `--cuda`  | Run the 2D CUDA-based GPU solver |
 
----
-
-### Available Flags (you must put the obligatory flags)
+### Available Flags
 
 | Flag                            | Behavior                                               | 3D LBM | 2D LBM | OBLIGATORY|
 |---------------------------------|--------------------------------------------------------|:------:|:------:|:---------------|
@@ -129,9 +61,10 @@ set(CMAKE_CUDA_ARCHITECTURES 75)   # CC 7.5
 | `-tunnel`                       | Apply wind-tunnel boundary geometry.                   | ⛔     | ✅     |⛔|   
 | `-my`                           | Specify grid resolution in Y only for 2D(equal to X default).      | ⛔     | ✅     |⛔| 
 
+
 ---
 
-**Examples:**
+### Examples
 
    * **3D solver** with a cubic mesh of 100 points, 1,000 time steps, Reynolds number = 500:
 
@@ -151,9 +84,19 @@ set(CMAKE_CUDA_ARCHITECTURES 75)   # CC 7.5
      ./run.sh --cuda -m 256 -s 1500 -r 750
      ```
 
-## Plotting data using the visualizer:
+---
 
-To visualizer the results of the 2D simulation, either lid-driven cavity or tunnel-type problem, move in the 2DLBM folder with:
+## **Running CUDA with Colab**
+
+To run the CUDA version without a local NVIDIA GPU, you can use Google Colab.  
+A ready-to-use Python notebook with detailed instructions is available [here](src/cuda/lbm_cuda.ipynb).
+
+
+---
+
+## 2D Visualization
+
+To visualize the results of the 2D simulation, either lid-driven cavity or tunnel-type problem, move in the 2DLBM folder with:
 
 ```bash
      cd src && cd 2DLBM
@@ -172,125 +115,33 @@ In case the visualizer does not work, you might have some libraries conflicts. I
 source ~/newenv/bin/activate
 ```
 The output video is saved in the 'output' directory.
-## 3. **Running CUDA with Colab**
-
-if you want to running dthe cuda implementation but without having a Nvidia GPU you find a python notebook to upload in colab also all the instruction [here](src/cuda/lbm_cuda.ipynb)
-
 
 ---
 
-### Validation of Results
-The following graphs allows to compare the y-component of the velocity of the fluid along the vertical line through the geometrical center of the cavity.  
+## Validation
 
-It can be observed that although the results with Re = 100 are relatively accurate, there's an error build-up with toward the lower part of the cavity and with increasing Reynolds numbers. That can probably be caused by slightly different parameters and formulae used. We are confident that our code works as intended and that, with some tweaking, we could allign our results with the reference data.
 
-<div class="container2">
-  <div class="row2">
-    <div class="column2">
-      <h4>Our results</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>129-grid pt. no.</th>
-            <th>y</th>
-            <th>Re (100)</th>
-            <th>Re (400)</th>
-            <th>Re (1000)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>129</td><td>1.00</td><td>1</td><td>1</td><td>1</td></tr>
-          <tr><td>126</td><td>0.98</td><td>0.844576</td><td>0.759886</td><td>0.654879</td></tr>
-          <tr><td>125</td><td>0.97</td><td>0.792432</td><td>0.68533</td><td>0.56604</td></tr>
-          <tr><td>124</td><td>0.96</td><td>0.741241</td><td>0.6171</td><td>0.496168</td></tr>
-          <tr><td>123</td><td>0.95</td><td>0.691354</td><td>0.556289</td><td>0.44422</td></tr>
-          <tr><td>110</td><td>0.85</td><td>0.222347</td><td>0.262017</td><td>0.295701</td></tr>
-          <tr><td>95</td><td>0.74</td><td>-0.01649</td><td>0.141458</td><td>0.163419</td></tr>
-          <tr><td>80</td><td>0.62</td><td>-0.1383</td><td>0.004383</td><td>0.042401</td></tr>
-          <tr><td>65</td><td>0.50</td><td>-0.17906</td><td>-0.13328</td><td>-0.0651</td></tr>
-          <tr><td>59</td><td>0.46</td><td>-0.17623</td><td>-0.18906</td><td>-0.10638</td></tr>
-          <tr><td>37</td><td>0.29</td><td>-0.12114</td><td>-0.27501</td><td>-0.2716</td></tr>
-          <tr><td>23</td><td>0.18</td><td>-0.07795</td><td>-0.16957</td><td>-0.31972</td></tr>
-          <tr><td>14</td><td>0.11</td><td>-0.04994</td><td>-0.09319</td><td>-0.20474</td></tr>
-          <tr><td>10</td><td>0.08</td><td>-0.03668</td><td>-0.06236</td><td>-0.14069</td></tr>
-          <tr><td>9</td><td>0.07</td><td>-0.03321</td><td>-0.05479</td><td>-0.1247</td></tr>
-          <tr><td>8</td><td>0.06</td><td>-0.02968</td><td>-0.04723</td><td>-0.10798</td></tr>
-          <tr><td>1</td><td>0.00</td><td>0</td><td>0</td><td>0</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="column2">
-      <h4>Reference data</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>129-grid pt. no.</th>
-            <th>y</th>
-            <th>Re (100)</th>
-            <th>Re (400)</th>
-            <th>Re (1000)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>129</td><td>1.00000</td><td>1.00000</td><td>1.00000</td><td>1.00000</td></tr>
-          <tr><td>126</td><td>0.9766</td><td>0.84123</td><td>0.75837</td><td>0.65928</td></tr>
-          <tr><td>125</td><td>0.9688</td><td>0.78871</td><td>0.68439</td><td>0.57492</td></tr>
-          <tr><td>124</td><td>0.9609</td><td>0.73722</td><td>0.61756</td><td>0.51117</td></tr>
-          <tr><td>123</td><td>0.9531</td><td>0.68717</td><td>0.55892</td><td>0.46604</td></tr>
-          <tr><td>110</td><td>0.8516</td><td>0.23151</td><td>0.29093</td><td>0.33304</td></tr>
-          <tr><td>95</td><td>0.7344</td><td>0.00332</td><td>0.16256</td><td>0.18719</td></tr>
-          <tr><td>80</td><td>0.6172</td><td>-0.13641</td><td>0.02135</td><td>0.05702</td></tr>
-          <tr><td>65</td><td>0.5000</td><td>-0.20581</td><td>-0.11477</td><td>-0.06080</td></tr>
-          <tr><td>59</td><td>0.4531</td><td>-0.21090</td><td>-0.17119</td><td>-0.10648</td></tr>
-          <tr><td>37</td><td>0.2813</td><td>-0.15662</td><td>-0.32726</td><td>-0.27805</td></tr>
-          <tr><td>23</td><td>0.1719</td><td>-0.10150</td><td>-0.24299</td><td>-0.38289</td></tr>
-          <tr><td>14</td><td>0.1016</td><td>-0.06434</td><td>-0.14612</td><td>-0.29730</td></tr>
-          <tr><td>10</td><td>0.0703</td><td>-0.04775</td><td>-0.10388</td><td>-0.22220</td></tr>
-          <tr><td>9</td><td>0.0625</td><td>-0.04192</td><td>-0.09266</td><td>-0.20196</td></tr>
-          <tr><td>8</td><td>0.0547</td><td>-0.03717</td><td>-0.08186</td><td>-0.18109</td></tr>
-          <tr><td>1</td><td>0.0000</td><td>0.00000</td><td>0.00000</td><td>0.00000</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  
-  <div class="centered2">
-    <div style="width: 70%;">
-      <h4>Error wrt the reference data</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>129-Grid pt. no.</th>
-            <th>y</th>
-            <th>Re (100)</th>
-            <th>Re (400)</th>
-            <th>Re (1000)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>129</td><td>1.00</td><td>0.000000</td><td>0.000000</td><td>0.000000</td></tr>
-          <tr><td>126</td><td>0.98</td><td>0.003346</td><td>0.001516</td><td>-0.004401</td></tr>
-          <tr><td>125</td><td>0.97</td><td>0.003722</td><td>0.000940</td><td>-0.008880</td></tr>
-          <tr><td>124</td><td>0.96</td><td>0.004021</td><td>-0.000460</td><td>-0.015002</td></tr>
-          <tr><td>123</td><td>0.95</td><td>0.004184</td><td>-0.002631</td><td>-0.021820</td></tr>
-          <tr><td>110</td><td>0.85</td><td>-0.009163</td><td>-0.028913</td><td>-0.037339</td></tr>
-          <tr><td>95</td><td>0.74</td><td>-0.019810</td><td>-0.021102</td><td>-0.023771</td></tr>
-          <tr><td>80</td><td>0.62</td><td>-0.001890</td><td>-0.016967</td><td>-0.014619</td></tr>
-          <tr><td>65</td><td>0.50</td><td>0.026750</td><td>-0.018510</td><td>-0.004300</td></tr>
-          <tr><td>59</td><td>0.46</td><td>0.034670</td><td>-0.017870</td><td>0.000100</td></tr>
-          <tr><td>37</td><td>0.29</td><td>0.035480</td><td>0.052250</td><td>0.006450</td></tr>
-          <tr><td>23</td><td>0.18</td><td>0.023550</td><td>0.073420</td><td>0.063170</td></tr>
-          <tr><td>14</td><td>0.11</td><td>0.014400</td><td>0.052930</td><td>0.092560</td></tr>
-          <tr><td>10</td><td>0.08</td><td>0.011070</td><td>0.041520</td><td>0.081510</td></tr>
-          <tr><td>9</td><td>0.07</td><td>0.008710</td><td>0.037870</td><td>0.077260</td></tr>
-          <tr><td>8</td><td>0.06</td><td>0.007490</td><td>0.034630</td><td>0.073110</td></tr>
-          <tr><td>1</td><td>0.00</td><td>0.000000</td><td>0.000000</td><td>0.000000</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+To verify the correctness of our implementation, we compared our simulation results for the lid-driven cavity problem against benchmark reference data for Reynolds numbers **100**, **400**, and **1000**.
+
+The comparison focuses on the **vertical centerline velocity profile**: specifically, the **y-component of the velocity (`v_y`)** along the line `x = L/2` from the bottom to the top of the cavity (`y = 0` to `y = 1`).
+
+Each plot below shows:
+- **Our simulation results** (dashed line with markers)
+- **Reference values** from the literature (solid line)
+
+
+<div style="display: flex; gap: 20px;">
+  <img src="media/re100.png" alt="Re = 100" width="32%">
+  <img src="media/re400.png" alt="Re = 400" width="32%">
+  <img src="media/re1000.png" alt="Re = 1000" width="32%">
 </div>
 
+### Observations
+
+The simulation results for Re = 100 closely match the reference data, indicating good agreement. As the Reynolds number increases to 400 and 1000, deviations become more evident, particularly near the lower part of the cavity. This gradual build-up of error is likely due to slight differences in implementation details or parameter formulations. Nonetheless, the simulation shows consistent accuracy and stable behavior across a range of Reynolds numbers, supporting the validity of the overall approach.
+
+
+---
 
 ### Gallery
 
@@ -324,6 +175,7 @@ It can be observed that although the results with Re = 100 are relatively accura
 
 
 <br><br>
+---
 
 ## 3D Lid-Driven Cavity Simulation with 3DLBM
 
@@ -350,7 +202,7 @@ Simulation data are exported in VTK format and visualized using ParaView:
 * Automated rendering of video animations via ParaView’s Python scripting interface.
 
 <details>
- <summary> Gallery of videos (click to espand) </summary>
+ <summary> Gallery of videos (click to expand) </summary>
 
 ### evolutions of system with the streamline section evolutions
  
@@ -457,9 +309,9 @@ Simulation data are exported in VTK format and visualized using ParaView:
 </details>
 
 ## Results
-For a comprehensive quantitative and qualitative analysis of our simulation outcomes, please refer to the accompanying LaTeX report (utoref{sec:detailed_analysis} in the main document).
+For a comprehensive quantitative and qualitative analysis of our simulation outcomes, please refer to the accompanying LaTeX report (autoref{sec:detailed_analysis} in the main document).
 
-also we arrive at this conclusion about our implememtation:
+We conclude the following regarding our implementation:
 
 - **Computational demand:** High-Reynolds runs require fine meshes to maintain stability and accuracy—coarser grids lead to divergence or excessive numerical diffusion. As Reynolds increases, the necessary lattice resolution grows cubically, demanding substantial CPU time and memory.
 - **VTK-based output:** Saving each snapshot in VTK format streamlines post‑processing in ParaView, offering flexible filtering, scripting, and high-quality rendering. However, the file size scales with mesh size and snapshot frequency, resulting in significant disk usage and I/O overhead for large 3D grids.
@@ -473,7 +325,4 @@ For validation of the 3D data we have compared this with this paper [Validation 
 - Federico Pinto
 - Mattia Gotti
 - Michele Milani
-
-
-
 
