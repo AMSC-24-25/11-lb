@@ -169,8 +169,8 @@ The simulation results for Re = 100 closely match the reference data, indicating
 
 <table style="width: 100%;">
     <tr>
-        <th style="width: 50%;">Circle</th>
-        <th style="width: 50%;">Cl & Cd</th>
+        <th style="width: 60%;">Circle</th>
+        <th style="width: 40%;">Cl & Cd</th>
     </tr>
     <tr>
         <td><img src="./media/600x200_re1000_circle.gif" alt="600x200_re1000_circle"></td>
