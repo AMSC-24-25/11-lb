@@ -5,17 +5,15 @@
 This project implements the Lattice Boltzmann Method (LBM) to simulate fluid flows in both 2D and 3D, using the D2Q9 and D3Q19 models. It includes a 2D lid-driven cavity problem, a 3D lid-driven cavity simulation, a 2D wind tunnel configuration with obstacles insertion and a 2D CUDA-parallelized implementation for GPU acceleration.
 
 
+<br>
+<img src="./media/lbm_simulation.gif" alt="LBM simulation" width="500" style="display:block; margin-top:8px; margin-bottom:0px;">
 ---
 
 ## Requirements
 
-### Tools
 - `g++` with C++17 or higher
 - OpenMP development package
-- NVIDIA GPU + CUDA Toolkit (only for CUDA runs)
 - Python (for 2D post-processing)
-
-### Software
 - ParaView (for 3D visualization)
 
 ---
@@ -86,7 +84,7 @@ Once the script is executable, run the simulation by passing the required argume
 
 ---
 
-## **Running CUDA with Colab**
+## Running CUDA with Colab
 
 To run the CUDA version without a local NVIDIA GPU, you can use Google Colab.  
 A ready-to-use Python notebook with detailed instructions is available [here](src/cuda/lbm_cuda.ipynb).
@@ -147,24 +145,24 @@ The simulation results for Re = 100 closely match the reference data, indicating
 
 <table>
     <tr>
-        <th>Re=100 on a 100x100 cavity</th>
-        <th>Re=10000 on a 100x100 cavity</th>
+        <th>Re=100 on a 250x250 cavity</th>
+        <th>Re=10000 on a 250x250 cavity</th>
     </tr>
     <tr>
-        <td><img src="./media/100x100_re100_steps5000_periteration5_fps24.gif" alt="100x100_re100_steps5000_periteration5_fps24"></td>
-        <td><img src="./media/100x100_re10000_steps10000_periteration10_fps24.gif" alt="100x100_re10000_steps10000_periteration10_fps24"></td>
+        <td><img src="./media/250x250_re100.gif" alt="250x250_re100"></td>
+        <td><img src="./media/250x250_re10000.gif" alt="250x250_re10000"></td>
     </tr>
     <tr>
-        <th>Re=10000 on a 75x50 cavity with an alternative boundary condition</th>
-        <th>Re=10000 on a 240x200 cavity with an alternative boundary condition</th>
+        <th>airfoil</th>
+        <th>cl cd</th>
     </tr>
     <tr>
         <td><img src="./media/75x50_re10000_steps10000_periteration20_fps24_alt1.gif" alt="75x50_re10000_steps10000_periteration20_fps24_alt1"></td>
         <td><img src="./media/240x200_re10000_steps20000_periteration50_fps24_alt2.gif" alt="240x200_re10000_steps20000_periteration50_fps24_alt2"></td>
     </tr>
     <tr>
-        <th>Re=2200 on a 200x80 cavity </th>
-        <th>Re=1000 on a 250x250 cavity</th>
+        <th>cerchio </th>
+        <th>cl cd</th>
     </tr>
     <tr>
         <td><img src="./media/200x80_re2200_steps10000_periteration50_fps24.gif" alt="200x80_re2200_steps10000_periteration50_fps24"></td>
@@ -307,18 +305,6 @@ Simulation data are exported in VTK format and visualized using ParaView:
 
 
 </details>
-
-## Results
-For a comprehensive quantitative and qualitative analysis of our simulation outcomes, please refer to the accompanying LaTeX report (autoref{sec:detailed_analysis} in the main document).
-
-We conclude the following regarding our implementation:
-
-- **Computational demand:** High-Reynolds runs require fine meshes to maintain stability and accuracy—coarser grids lead to divergence or excessive numerical diffusion. As Reynolds increases, the necessary lattice resolution grows cubically, demanding substantial CPU time and memory.
-- **VTK-based output:** Saving each snapshot in VTK format streamlines post‑processing in ParaView, offering flexible filtering, scripting, and high-quality rendering. However, the file size scales with mesh size and snapshot frequency, resulting in significant disk usage and I/O overhead for large 3D grids.
-- **Method trade-offs:** LBM’s locality and simplicity yield excellent parallel efficiency, yet the need for uniformly fine lattices can limit applicability in highly turbulent or multiscale flows without adaptive refinement.
-
-For validation of the 3D data we have compared this with this paper [Validation Results](https://www.sciencedirect.com/science/article/pii/0021999187901902).
-
 
 ## Authors
 
