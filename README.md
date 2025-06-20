@@ -209,7 +209,7 @@ Simulation data are exported in VTK format and visualized using ParaView:
 * Automated rendering of video animations via ParaView’s Python scripting interface.
 
 <details>
- <summary> Gallery of videos (click to expand) </summary>
+ <summary>  <strong>Gallery of videos (click to expand)</strong> </summary>
 
 ### evolutions of system with the streamline section evolutions
  
@@ -314,6 +314,11 @@ Simulation data are exported in VTK format and visualized using ParaView:
 
 
 </details>
+
+## Results and Validation of 3D
+For a comprehensive quantitative and qualitative analysis of our simulation outcomes, please refer to the accompanying LaTeX report (autoref{sec:detailed_analysis} in the main document).
+
+For validation of the 3D data we have compared this with this paper [Validation Results](https://www.sciencedirect.com/science/article/pii/0021999187901902).
 
 ## Authors
 
