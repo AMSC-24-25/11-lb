@@ -20,6 +20,9 @@ This project implements the Lattice Boltzmann Method (LBM) to simulate fluid flo
 
 ## Compilation and Execution
 
+### 0. **Special Case** :  in case you want to run natively on Mac OS or you have problem with cuda [click here](media/readmefiles/specialcase.md)
+
+
 ### 1. Make the launcher script executable
 
 Before running the simulation, ensure that the launcher script has execution permissions:
@@ -30,7 +33,7 @@ chmod +x run.sh
 
 ### 2. Run the simulation
 
-Once the script is executable, run the simulation by passing the required arguments:
+Once the script is executable and you are in the directory where `run.sh` is, run the simulation by passing the required arguments:
 
 ```bash
 ./run.sh [FLAGS]
