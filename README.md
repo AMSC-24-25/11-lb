@@ -5,8 +5,10 @@
 This project implements the Lattice Boltzmann Method (LBM) to simulate fluid flows in both 2D and 3D, using the D2Q9 and D3Q19 models. It includes a 2D lid-driven cavity problem, a 3D lid-driven cavity simulation, a 2D wind tunnel configuration with obstacles insertion and a 2D CUDA-parallelized implementation for GPU acceleration.
 
 
-<br>
-<img src="./media/lbm_simulation.gif" alt="LBM simulation" width="500" style="display:block; margin-top:8px; margin-bottom:0px;">
+The image below shows an example of a 2D Lattice simulation on a 300×100 grid with Re = 1000, including a single circular obstacle
+
+<img src="./media/300x100_circle.gif" alt="LBM 300x100_circle" width="500" style="display:block; margin-top:8px; margin-bottom:0px;">
+
 ---
 
 ## Requirements
