@@ -143,40 +143,42 @@ The simulation results for Re = 100 closely match the reference data, indicating
 
 ### Gallery
 
-<table style="width: 100%;">
+
+<table>
     <tr>
-        <th style="width: 50%;">Re=100 on a 250x250 cavity</th>
-        <th style="width: 50%;">Re=10000 on a 250x250 cavity</th>
+        <th>Re=100 on a 250x250 cavity</th>
+        <th>Re=10000 on a 250x250 cavity</th>
     </tr>
     <tr>
-        <td style="width: 50%;"><img src="./media/250x250_re100.gif" alt="250x250_re100" style="width: 100%;"></td>
-        <td style="width: 50%;"><img src="./media/250x250_re10000.gif" alt="250x250_re10000" style="width: 100%;"></td>
+        <td><img src="./media/250x250_re100.gif" alt="250x250_re100"></td>
+        <td><img src="./media/250x250_re10000.gif" alt="250x250_re10000"></td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <th>airfoil</th>
+        <th>cl cd</th>
+    </tr>
+    <tr>
+        <td><img src="./media/600x200_re1000_airfoil.gif" alt="600x200_re1000_airfoil"></td>
+        <td><img src="./media/coefficients_plot_airfoil.png" alt="coefficients_plot_airfoil" width="450"></td>
     </tr>
 </table>
 
 
-<table style="width: 100%;">
+<table>
     <tr>
-        <th style="width: 50%;">Airfoil</th>
-        <th style="width: 50%;">Cl & Cd</th>
-    </tr>
-    <tr>
-        <td style="width: 50%;"><img src="./media/75x50_re10000_steps10000_periteration20_fps24_alt1.gif" alt="airfoil" style="width: 100%;"></td>
-        <td style="width: 50%;"><img src="./media/240x200_re10000_steps20000_periteration50_fps24_alt2.gif" alt="coefficients_airfoil" style="width: 100%;"></td>
-    </tr>
-</table>
-
-
-<table style="width: 100%;">
-    <tr>
-        <th style="width: 60%;">Circle</th>
-        <th style="width: 40%;">Cl & Cd</th>
+        <th>circle</th>
+        <th>cl cd</th>
     </tr>
     <tr>
         <td><img src="./media/600x200_re1000_circle.gif" alt="600x200_re1000_circle"></td>
-        <td><img src="./media/coefficients_plot_circle.png" alt="media/coefficients_plot_circle"></td>
+        <td><img src="./media/coefficients_plot_circle.png" alt="coefficients_plot_circle" width="450"></td>
     </tr>
 </table>
+
+
 
 ---
 

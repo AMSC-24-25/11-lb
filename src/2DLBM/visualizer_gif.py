@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import imageio
 import os
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 # input file name (modifica se il percorso cambia)
 input_file = os.path.abspath(os.path.join(__file__, '..', '..', '..', 'output/vel_data.txt'))
@@ -24,7 +25,10 @@ def create_frames(nx, ny, data, num_iterations, vmax):
 
         fig, ax = plt.subplots()
         im = ax.imshow(frame_data, cmap='RdBu_r', origin='lower', vmin=0, vmax=vmax)
-        plt.colorbar(im, ax=ax, label='Velocity Magnitude')
+
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)  # puoi regolare size e pad
+        plt.colorbar(im, cax=cax, label='Velocity Magnitude')
         ax.set_title(f'Iteration {iter * iteration_per_frame}')
 
         fig.canvas.draw()
