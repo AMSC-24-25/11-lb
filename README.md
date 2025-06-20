@@ -24,8 +24,8 @@ The image below shows an example of a 2D Lattice simulation on a 300×100 grid w
 
 ### 0. Special Case – Running on macOS or CUDA Issues
 
-If you're using macOS or encountering problems related to CUDA, please refer to the dedicated guide available here:  
-[media/readmefiles/specialcase.md](media/readmefiles/specialcase.md)
+If you're using macOS or encountering problems related to CUDA, please refer to the dedicated guide available [here](media/readmefiles/specialcase.md)
+
 
 
 ### 1. Make the launcher script executable
