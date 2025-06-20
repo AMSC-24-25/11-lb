@@ -130,7 +130,7 @@ Lattice::Lattice(unsigned int nx, unsigned int ny, double u, double Re, std::str
         param_file << "tau_minus = " << tau_minus << "\n";
         param_file << "omega_M = " << omega_M << "\n\n";
 
-        param_file << "# Sigma for force calculation\n";
+        param_file << "# Sigma\n";
         param_file << "sigma = " << sigma << "\n\n";
 
         param_file << "# Output files:\n";
@@ -278,7 +278,7 @@ void Lattice::simulate(int max_steps, int iter_per_frame)
     const double halfOmegaSum = (omega_P+omega_M)/2.0;
     const double halfOmegaSub = (omega_P-omega_M)/2.0;
     auto startTime = std::chrono::high_resolution_clock::now();
-    double D, L;
+    double Cd, Cl;
 
     for(int currentStep = 0; currentStep < maxSteps; currentStep++)
     {
@@ -306,14 +306,14 @@ void Lattice::simulate(int max_steps, int iter_per_frame)
         }
         #pragma omp single
         {
-            D = L = 0.0;
+            Cd = Cl = 0.0;
         }
 
         if (object_count == 1)
         {
             for( int i=0; i<node_matrix.shape().at(0); i++)
                 for (int j=0; j<node_matrix.shape().at(1); j++)
-                    node_matrix(i,j).computeDragAndLift(D, L);
+                    node_matrix(i,j).computeDragAndLift(Cd, Cl, u, size);
         }
         std::ofstream file_velocity(outdir+"/vel_data.txt", std::ios::app);
         std::ofstream file_lift_drag(outdir+"/lift_drag_coefficients.txt", std::ios::app);
@@ -336,7 +336,7 @@ void Lattice::simulate(int max_steps, int iter_per_frame)
                 }
             }
             if (object_count==1)
-                file_lift_drag << L/(2*(u*300)*(u*300)*1.0*size) << " " << D/(2*(u*300)*(u*300)*1.0*size) << "\n";
+                file_lift_drag << Cl << " " << Cd << "\n";
         }
 
         // Update the progress bar

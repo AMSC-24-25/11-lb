@@ -84,6 +84,6 @@ double create_circular_mask(
             }
         }
     }
-    return radius;
+    return 2.0*radius;
 }
 

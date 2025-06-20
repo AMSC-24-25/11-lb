@@ -78,7 +78,7 @@ public:
      * @param D Drag.
      * @param L Lift.
      */
-    void computeDragAndLift(double &D, double &L);
+    void computeDragAndLift(double &D, double &L, double u, double size);
 
     // --- Getters ---
     const double& getDensity() const;
