@@ -143,11 +143,11 @@ The simulation results for Re = 100 closely match the reference data, indicating
 
 ### Gallery
 
-
+<!-- Lid-Driven Cavity -->
 <table>
     <tr>
-        <th>Re=100 on a 250x250 cavity</th>
-        <th>Re=10000 on a 250x250 cavity</th>
+        <th>250×250 Lid-Driven Cavity — Re = 100</th>
+        <th>250×250 Lid-Driven Cavity — Re = 10000</th>
     </tr>
     <tr>
         <td><img src="./media/250x250_re100.gif" alt="250x250_re100"></td>
@@ -155,10 +155,11 @@ The simulation results for Re = 100 closely match the reference data, indicating
     </tr>
 </table>
 
+<!-- Airfoil Simulation -->
 <table>
     <tr>
-        <th>airfoil</th>
-        <th>cl cd</th>
+        <th>600×200 Airfoil — Re = 1000</th>
+        <th>Lift and Drag Coefficients</th>
     </tr>
     <tr>
         <td><img src="./media/600x200_re1000_airfoil.gif" alt="600x200_re1000_airfoil"></td>
@@ -166,19 +167,17 @@ The simulation results for Re = 100 closely match the reference data, indicating
     </tr>
 </table>
 
-
+<!-- Circular Obstacle -->
 <table>
     <tr>
-        <th>circle</th>
-        <th>cl cd</th>
+        <th>600×200 Circle — Re = 1000</th>
+        <th>Lift and Drag Coefficients</th>
     </tr>
     <tr>
         <td><img src="./media/600x200_re1000_circle.gif" alt="600x200_re1000_circle"></td>
         <td><img src="./media/coefficients_plot_circle.png" alt="coefficients_plot_circle" width="450"></td>
     </tr>
 </table>
-
-
 
 ---
 
