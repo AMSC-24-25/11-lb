@@ -1,4 +1,4 @@
-# Project Group 11: Lattice Boltzmann Method
+# Project Group 11: Lattice Boltzmann Methods
 
 ## Introduction and Objectives
 
@@ -72,19 +72,19 @@ Once the script is executable and you are in the directory where `run.sh` is, ru
 
 ### Examples
 
-   * **3D solver** with a cubic mesh of 100 points, 1,000 time steps, Reynolds number = 500:
+   * **3D solver** with a cubic mesh of 100 points, 1000 time steps, Reynolds number = 500:
 
      ```bash
      ./run.sh --3dLbm -m 100 -s 1000 -r 500
      ```
 
-   * **2D solver** with OpenMP, wind-tunnel geometry, mesh 200×100, 2,000 steps, Re = 1000:
+   * **2D solver** with OpenMP, wind-tunnel geometry, mesh 200×100, 2000 steps, Re = 1000:
 
      ```bash
      ./run.sh --2dLbm -m 200 -my 100 -s 2000 -r 1000 -omp -tunnel
      ```
 
-   * **CUDA solver** on GPU architecture SM 7.5, mesh 256, 1,500 steps, Re = 750:
+   * **CUDA solver** on GPU architecture SM 7.5, mesh 256, 1500 steps, Re = 750:
 
      ```bash
      ./run.sh --cuda -m 256 -s 1500 -r 750
