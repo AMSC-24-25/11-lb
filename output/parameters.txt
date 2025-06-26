@@ -1,0 +1,62 @@
+# ---- LBM Simulation Parameters ----
+
+# Domain Size
+NX = 800
+NY = 200
+
+# Physical Parameters
+Re = 1000
+boundary_velocity:
+  Vx = 0.1
+  Vy = 0
+
+# Derived Parameters
+nu (kinematic viscosity) = 0.0533333
+tau (relaxation time) = 0.66
+omega_P = 1.51515
+lambda_trt = 0.25
+tau_minus = 2.0625
+omega_M = 0.484848
+
+# Sigma
+sigma = 2000
+
+# Output files:
+vel_data.txt (velocity field)
+lift_drag.txt (aerodynamic forces)
+
+# Obstacle:
+  - type: circle
+    radius: 15
+    center_x: 100
+    center_y: 100
+
+# Obstacle:
+  - type: circle
+    radius: 15
+    center_x: 225
+    center_y: 100
+
+# Obstacle:
+  - type: circle
+    radius: 15
+    center_x: 350
+    center_y: 100
+
+# Obstacle:
+  - type: circle
+    radius: 15
+    center_x: 475
+    center_y: 100
+
+# Obstacle:
+  - type: circle
+    radius: 15
+    center_x: 600
+    center_y: 100
+
+# Time-Stepping
+maxSteps = 10000
+ITERATIONS_PER_FRAME = 25
+ITERATIONS_PER_PROGRESS_UPDATE = 10
+

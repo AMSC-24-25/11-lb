@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+*data.txt
+*.vtk
+*.csv
+*.mp4
+
+build/
+
